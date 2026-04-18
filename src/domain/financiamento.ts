@@ -1,11 +1,15 @@
 import type { FinanciamentoParams, LinhaAmortizacao, ResultadoSimulacao } from './types'
-import { pmt, irr, npv } from './financeiro'
+import { irr, npv } from './financeiro'
 
 export function calcularFinanciamento(p: FinanciamentoParams): ResultadoSimulacao {
+  // Taxa de correção mensal equivalente ao índice anual (IPCA/INCC/TR)
+  const tc = Math.pow(1 + p.indiceAnual, 1 / 12) - 1
+
   const custas = p.fundoReserva + p.seguro
   const saldoInicial = p.valorCarta * (1 + custas)
-  const parcelaBase = pmt(p.taxaJuros, p.parcelas, saldoInicial)
-  const parcelaInicial = parcelaBase + p.taxaMensal
+
+  // SAC: amortização constante sobre o saldo inicial
+  const amortizacao = saldoInicial / p.parcelas
 
   const linhas: LinhaAmortizacao[] = []
   let saldo = saldoInicial
@@ -15,22 +19,25 @@ export function calcularFinanciamento(p: FinanciamentoParams): ResultadoSimulaca
   const fluxoIRR: number[] = [p.valorCarta]
 
   for (let mes = 1; mes <= p.parcelas; mes++) {
-    if (mes > 1 && (mes - 1) % 12 === 0) {
-      cartaAjustada = cartaAjustada * (1 + p.indiceAnual)
-    }
+    // 1. Corrige saldo e carta pelo índice mensal
+    saldo = saldo * (1 + tc)
+    cartaAjustada = cartaAjustada * (1 + tc)
 
+    // 2. Juros sobre saldo corrigido × taxa mensal
     const juros = saldo * p.taxaJuros
-    const amortizacao = Math.max(0, parcelaBase - juros)
-    const parcelaJuros = Math.min(parcelaBase, saldo + juros)
-    const parcelaReal = parcelaJuros + p.taxaMensal
 
+    // 3. Parcela = amortização constante + juros + tarifa mensal fixa
+    const parcela = amortizacao + juros + p.taxaMensal
+
+    // 4. Abate a amortização do saldo
     saldo = Math.max(0, saldo - amortizacao)
-    totalPago += parcelaReal
-    fluxoIRR.push(-parcelaReal)
+
+    totalPago += parcela
+    fluxoIRR.push(-parcela)
 
     linhas.push({
       mes,
-      parcela: parcelaReal,
+      parcela,
       lance: 0,
       saldo,
       saldoAjustado: saldo,
@@ -39,6 +46,8 @@ export function calcularFinanciamento(p: FinanciamentoParams): ResultadoSimulaca
 
     if (saldo <= 0.01) break
   }
+
+  const parcelaInicial = linhas[0]?.parcela ?? 0
 
   const tirMensal = irr(fluxoIRR)
   const tirAnual = Math.pow(1 + tirMensal, 12) - 1
