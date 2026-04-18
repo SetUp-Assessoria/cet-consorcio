@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { BaseReajuste, LanceMode, TaxaJurosMode, Indexador, TipoContemplacao, ConsorcioParams, FinanciamentoParams } from '../domain/types'
+import type { BaseReajuste, IndiceConsorcio, LanceMode, TaxaJurosMode, Indexador, TipoContemplacao, ConsorcioParams, FinanciamentoParams } from '../domain/types'
 
 type FieldDef = {
   key: string
@@ -17,7 +17,6 @@ const CONSORCIO_FIELDS: FieldDef[] = [
   { key: 'taxaAdm', label: 'Taxa Adm (total)', unit: '%', step: 0.001, min: 0, max: 0.5, isPercent: true },
   { key: 'fundoReserva', label: 'Fundo Reserva (total)', unit: '%', step: 0.001, min: 0, max: 0.1, isPercent: true },
   { key: 'seguro', label: 'Seguro Prestamista', unit: '%', step: 0.00001, min: 0, max: 0.01, isPercent: true },
-  { key: 'ipca', label: 'IPCA (a.a.)', unit: '%', step: 0.001, min: 0, max: 0.3, isPercent: true },
   { key: 'valorizacaoImovel', label: 'Valorização do bem acima do índice de reajuste contratual', unit: '%', step: 0.001, min: 0, max: 0.5, isPercent: true },
 ]
 
@@ -111,6 +110,51 @@ function CampoCalc({ label, value, unit, accentClass = 'text-slate-700' }: { lab
       <div className="flex items-center gap-1 rounded border border-slate-200 bg-slate-50 px-2 py-1">
         <span className={`w-full min-w-0 text-sm font-medium ${accentClass}`}>{fmtBR(value, 0)}</span>
         <span className="shrink-0 text-xs text-slate-400">{unit}</span>
+      </div>
+    </div>
+  )
+}
+
+const INDICE_DEFAULTS: Record<IndiceConsorcio, number> = {
+  IPCA: 0.055,
+  INCC: 0.07,
+  ValorBem: 0.08,
+  Outro: 0,
+}
+
+const INDICE_LABELS: Record<IndiceConsorcio, string> = {
+  IPCA: 'IPCA',
+  INCC: 'INCC',
+  ValorBem: 'Valor do Bem',
+  Outro: 'Outro',
+}
+
+function CampoIndiceConsorcio({
+  indice, ipca, onChange,
+}: {
+  indice: IndiceConsorcio; ipca: number
+  onChange: (indice: IndiceConsorcio, ipca: number) => void
+}) {
+  const displayVal = +(ipca * 100).toFixed(4)
+
+  return (
+    <div className="flex flex-col gap-0.5 sm:col-span-2">
+      <label className="text-xs font-medium text-slate-500">Índice de Reajuste</label>
+      <div className="flex flex-wrap gap-1 mb-1">
+        {(['IPCA', 'INCC', 'ValorBem', 'Outro'] as IndiceConsorcio[]).map((idx) => (
+          <button key={idx} type="button"
+            onClick={() => onChange(idx, idx === 'Outro' ? ipca : INDICE_DEFAULTS[idx])}
+            className={`px-2 py-1 text-xs rounded border transition-colors ${indice === idx ? 'bg-blue-600 text-white border-blue-600 font-medium' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>
+            {INDICE_LABELS[idx]}
+          </button>
+        ))}
+      </div>
+      <div className="flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 focus-within:border-blue-400">
+        <input type="number" step={0.001} min={0}
+          value={displayVal}
+          onChange={(e) => { const r = parseFloat(e.target.value); if (!isNaN(r)) onChange('Outro', r / 100) }}
+          className="w-full min-w-0 bg-transparent text-sm outline-none" />
+        <span className="shrink-0 text-xs text-slate-400">%</span>
       </div>
     </div>
   )
@@ -214,6 +258,10 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
               value={(consorcioParams as unknown as Record<string, number>)[f.key]}
               onChange={(v) => onConsorcioChange({ ...consorcioParams, [f.key]: v })} />
           ))}
+          <CampoIndiceConsorcio
+            indice={consorcioParams.indiceConsorcio}
+            ipca={consorcioParams.ipca}
+            onChange={(indice, ipca) => onConsorcioChange({ ...consorcioParams, indiceConsorcio: indice, ipca })} />
           <CampoToggle
             label="Taxa Adesão"
             mode={consorcioParams.taxaAdesaoMode}

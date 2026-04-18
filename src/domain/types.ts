@@ -1,6 +1,7 @@
 export type BaseReajuste = 'totalContratado' | 'valorCarta'
 export type LanceMode = 'percentual' | 'financeiro'
 export type TipoContemplacao = 'sorteio' | 'lancePropio' | 'lanceEmbutido' | 'lanceEmbutidoMaisPropio'
+export type IndiceConsorcio = 'IPCA' | 'INCC' | 'ValorBem' | 'Outro'
 
 export interface ConsorcioParams {
   valorCarta: number
@@ -11,6 +12,7 @@ export interface ConsorcioParams {
   fundoReserva: number
   seguro: number
   ipca: number
+  indiceConsorcio: IndiceConsorcio
   valorizacaoImovel: number      // valorização esperada do imóvel acima do IPCA (a.a.)
   tipoContemplacao: TipoContemplacao
   parcelaContemplacao: number
