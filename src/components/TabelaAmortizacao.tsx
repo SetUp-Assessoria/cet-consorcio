@@ -20,7 +20,7 @@ export function TabelaAmortizacao({ linhas, label, color }: Props) {
         <table className="w-full text-xs border-collapse">
           <thead className="sticky top-0 bg-slate-100 z-10">
             <tr>
-              {['Mês', 'Parcela', 'Lance', 'Saldo', 'Saldo Aj.', 'Carta Aj.'].map((h) => (
+              {['Mês', 'Parcela', 'Lance', 'Saldo Devedor', 'Valor da Carta'].map((h) => (
                 <th key={h} className="px-2 py-2 text-right first:text-left font-semibold text-slate-600 border-b border-slate-200">
                   {h}
                 </th>
@@ -36,7 +36,6 @@ export function TabelaAmortizacao({ linhas, label, color }: Props) {
                   {l.lance > 0 ? moeda(l.lance) : '—'}
                 </td>
                 <td className="px-2 py-1 text-right">{moeda(Math.max(0, l.saldo))}</td>
-                <td className="px-2 py-1 text-right">{moeda(Math.max(0, l.saldoAjustado))}</td>
                 <td className="px-2 py-1 text-right">{moeda(l.cartaAjustada)}</td>
               </tr>
             ))}
