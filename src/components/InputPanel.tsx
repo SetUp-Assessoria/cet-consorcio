@@ -207,6 +207,10 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
             accentClass="bg-blue-600" borderClass="border-blue-200"
             onModeChange={(m) => onConsorcioChange({ ...consorcioParams, taxaAdesaoMode: m, taxaAdesao: 0 })}
             onChange={(v) => onConsorcioChange({ ...consorcioParams, taxaAdesao: v })} />
+          <Campo
+            field={{ key: 'redutorParcela', label: 'Redutor de Parcela', unit: '%', step: 0.1, min: 0, max: 1, isPercent: true }}
+            value={consorcioParams.redutorParcela}
+            onChange={(v) => onConsorcioChange({ ...consorcioParams, redutorParcela: v })} />
         </div>
 
         {/* Tipo de Contemplação */}

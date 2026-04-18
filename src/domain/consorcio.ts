@@ -18,6 +18,9 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
   let parcelaCarta = saldoCarta / p.parcelas
   let parcelaCustas = saldoCustas / p.parcelas
 
+  // Desconto acumulado do redutor de parcela (corrigido anualmente pelo IPCA)
+  let descontoAcumulado = 0
+
   const linhas: LinhaAmortizacao[] = []
   let totalPago = 0
   let creditoLiberado = 0
@@ -32,12 +35,30 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
       if (p.baseReajuste === 'totalContratado') {
         saldoCustas = saldoCustas * f
       }
+      // Corrige o desconto acumulado pelo mesmo índice do contrato
+      descontoAcumulado = descontoAcumulado * f
       const mesesRestantes = p.parcelas - mes + 1
       parcelaCarta = saldoCarta / mesesRestantes
       parcelaCustas = saldoCustas / mesesRestantes
     }
 
-    const parcela = parcelaCarta + parcelaCustas
+    const parcelaBase = parcelaCarta + parcelaCustas
+
+    // Redutor de parcela: reduz até a contemplação; após, dilui o acumulado nas parcelas restantes
+    let desconto = 0
+    let adicional = 0
+    if (p.redutorParcela > 0) {
+      if (mes < p.parcelaContemplacao) {
+        desconto = parcelaBase * p.redutorParcela
+        descontoAcumulado += desconto
+      } else if (descontoAcumulado > 0) {
+        const mesesRestantes = p.parcelas - mes + 1
+        adicional = descontoAcumulado / mesesRestantes
+        descontoAcumulado -= adicional
+      }
+    }
+
+    const parcela = parcelaBase - desconto + adicional
 
     // Lance próprio: desembolso em dinheiro (entra na coluna Lance)
     let lancePropio = 0
@@ -90,6 +111,7 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
       saldo: Math.max(0, saldoCarta + saldoCustas),
       saldoAjustado: Math.max(0, saldoCarta + saldoCustas),
       cartaAjustada,
+      desconto: desconto > 0 ? desconto : (adicional > 0 ? -adicional : 0),
     })
   }
 

@@ -17,6 +17,7 @@ export interface ConsorcioParams {
   lanceMode: LanceMode
   lanceEmbutido: number
   lanceEmbutidoMode: LanceMode
+  redutorParcela: number         // fração (0–1) — reduz a parcela até a contemplação
   baseReajuste: BaseReajuste
 }
 
@@ -45,6 +46,8 @@ export interface LinhaAmortizacao {
   amortizacao?: number
   juros?: number
   correcao?: number
+  // Consórcio com redutor: desconto aplicado na parcela neste mês
+  desconto?: number
 }
 
 export interface ResultadoSimulacao {

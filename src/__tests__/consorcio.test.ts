@@ -38,6 +38,7 @@ describe('calcularConsorcio', () => {
     lanceMode: 'percentual' as const,
     lanceEmbutido: 0,
     lanceEmbutidoMode: 'percentual' as const,
+    redutorParcela: 0,
     baseReajuste: 'totalContratado' as const,
   }
 

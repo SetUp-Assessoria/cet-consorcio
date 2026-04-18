@@ -12,9 +12,12 @@ export function TabelaAmortizacao({ linhas, label, color }: Props) {
   const labelColor = color === 'blue' ? 'text-blue-700' : 'text-orange-700'
   const isSAC = linhas[0]?.amortizacao !== undefined
 
+  const hasDesconto = !isSAC && linhas.some((l) => (l.desconto ?? 0) !== 0)
   const headers = isSAC
     ? ['Mês', 'Amortização', 'Correção', 'Juros', 'Parcela', 'Saldo Devedor']
-    : ['Mês', 'Parcela', 'Lance', 'Saldo Devedor', 'Valor da Carta']
+    : hasDesconto
+      ? ['Mês', 'Parcela', 'Desconto', 'Lance', 'Saldo Devedor', 'Valor da Carta']
+      : ['Mês', 'Parcela', 'Lance', 'Saldo Devedor', 'Valor da Carta']
 
   return (
     <div className={`rounded-xl border ${borderColor} overflow-hidden`}>
@@ -47,6 +50,15 @@ export function TabelaAmortizacao({ linhas, label, color }: Props) {
                 ) : (
                   <>
                     <td className="px-2 py-1 text-right">{moeda(l.parcela)}</td>
+                    {hasDesconto && (
+                      <td className={`px-2 py-1 text-right ${
+                        (l.desconto ?? 0) > 0 ? 'text-emerald-600'
+                        : (l.desconto ?? 0) < 0 ? 'text-rose-600'
+                        : 'text-slate-400'
+                      }`}>
+                        {(l.desconto ?? 0) !== 0 ? moeda(l.desconto ?? 0) : '—'}
+                      </td>
+                    )}
                     <td className={`px-2 py-1 text-right ${l.lance > 0 ? 'font-semibold text-purple-600' : 'text-slate-400'}`}>
                       {l.lance > 0 ? moeda(l.lance) : '—'}
                     </td>

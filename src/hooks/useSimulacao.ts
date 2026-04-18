@@ -18,6 +18,7 @@ export const DEFAULT_CONSORCIO: ConsorcioParams = {
   lanceMode: 'percentual',
   lanceEmbutido: 0,
   lanceEmbutidoMode: 'percentual',
+  redutorParcela: 0,
   baseReajuste: 'totalContratado',
 }
 
