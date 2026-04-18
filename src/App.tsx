@@ -35,10 +35,9 @@ export default function App() {
         <ResumoCards consorcio={resultadoConsorcio} financiamento={resultadoFinanciamento} />
 
         <p className="text-[11px] text-slate-400 -mt-3">
-          ¹ CET ajustado: o crédito efetivamente liberado é trazido a valor presente pelo IPCA —
-          creditoPV = crédito ÷ (1 + IPCA)^(k/12) — e posicionado em t=0. O CET resultante é então
-          composto com a valorização do bem: (1 + CET) × (1 + valorização) − 1. Reflete o custo real
-          de aguardar a contemplação. O financiamento recebe o crédito em t=0 e não sofre ajuste.
+          ¹ CET base: crédito ÷ (1 + IPCA)^(k/12). CET c/ custo de espera: crédito ÷ ((1 + IPCA) × (1 + valorização))^(k/12).
+          A diferença entre os dois reflete o custo anual de aguardar enquanto o imóvel valoriza além da correção contratual (≈ valorização informada).
+          O financiamento recebe o crédito em t=0 e não sofre ajuste.
         </p>
 
         <Graficos
