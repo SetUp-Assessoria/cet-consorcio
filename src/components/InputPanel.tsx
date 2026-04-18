@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { BaseReajuste, LanceMode, TaxaJurosMode, Indexador, ConsorcioParams, FinanciamentoParams } from '../domain/types'
 
 type FieldDef = {
@@ -14,7 +15,6 @@ const CONSORCIO_FIELDS: FieldDef[] = [
   { key: 'valorCarta', label: 'Valor da Carta', unit: 'R$', step: 1000, min: 1000, max: 10000000 },
   { key: 'parcelas', label: 'Nº Parcelas', unit: 'meses', step: 1, min: 12, max: 240 },
   { key: 'taxaAdm', label: 'Taxa Adm (total)', unit: '%', step: 0.001, min: 0, max: 0.5, isPercent: true },
-  { key: 'taxaAdesao', label: 'Taxa Adesão', unit: '%', step: 0.001, min: 0, max: 0.1, isPercent: true },
   { key: 'fundoReserva', label: 'Fundo Reserva (total)', unit: '%', step: 0.001, min: 0, max: 0.1, isPercent: true },
   { key: 'seguro', label: 'Seguro Prestamista', unit: '%', step: 0.00001, min: 0, max: 0.01, isPercent: true },
   { key: 'ipca', label: 'IPCA (a.a.)', unit: '%', step: 0.001, min: 0, max: 0.3, isPercent: true },
@@ -29,23 +29,34 @@ const FINANCIAMENTO_FIELDS: FieldDef[] = [
   { key: 'seguro', label: 'Seguro Prestamista', unit: '%', step: 0.001, min: 0, max: 0.1, isPercent: true },
 ]
 
+const fmtBR = (v: number, casas = 2) =>
+  v.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas })
+
 function Campo({ field, value, onChange }: { field: FieldDef; value: number; onChange: (v: number) => void }) {
-  const displayVal = field.isPercent ? +(value * 100).toFixed(5) : value
+  const [focused, setFocused] = useState(false)
+  const [localStr, setLocalStr] = useState('')
+
+  const rawDisplay = field.isPercent ? value * 100 : value
+  const casas = field.isPercent ? 4 : (field.step < 1 ? 2 : 0)
+  const formatted = fmtBR(rawDisplay, casas)
 
   return (
     <div className="flex flex-col gap-0.5">
       <label className="text-xs font-medium text-slate-500">{field.label}</label>
       <div className="flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 focus-within:border-blue-400">
         <input
-          type="number"
-          step={field.isPercent ? +(field.step * 100).toFixed(6) : field.step}
-          min={field.isPercent ? field.min * 100 : field.min}
-          max={field.isPercent ? field.max * 100 : field.max}
-          value={displayVal}
-          onChange={(e) => {
-            const raw = parseFloat(e.target.value)
-            if (isNaN(raw)) return
-            onChange(field.isPercent ? raw / 100 : raw)
+          type="text"
+          inputMode="decimal"
+          value={focused ? localStr : formatted}
+          onFocus={() => {
+            setLocalStr(fmtBR(rawDisplay, casas))
+            setFocused(true)
+          }}
+          onChange={(e) => setLocalStr(e.target.value)}
+          onBlur={() => {
+            setFocused(false)
+            const parsed = parseFloat(localStr.replace(/\./g, '').replace(',', '.'))
+            if (!isNaN(parsed)) onChange(field.isPercent ? parsed / 100 : parsed)
           }}
           className="w-full min-w-0 bg-transparent text-sm outline-none"
         />
@@ -113,6 +124,40 @@ function CampoLance({
           }}
           className="w-full min-w-0 bg-transparent text-sm outline-none"
         />
+        <span className="shrink-0 text-xs text-slate-400">{isPercent ? '%' : 'R$'}</span>
+      </div>
+    </div>
+  )
+}
+
+function CampoAdesao({
+  mode, value, accentClass, borderClass, onModeChange, onChange,
+}: {
+  mode: LanceMode; value: number; accentClass: string; borderClass: string
+  onModeChange: (m: LanceMode) => void; onChange: (v: number) => void
+}) {
+  const isPercent = mode === 'percentual'
+  const displayVal = isPercent ? +(value * 100).toFixed(4) : value
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-medium text-slate-500">Taxa Adesão</label>
+        <div className={`flex rounded border ${borderClass} overflow-hidden text-xs`}>
+          {(['percentual', 'financeiro'] as LanceMode[]).map((m) => (
+            <button key={m} type="button"
+              onClick={() => { onChange(0); onModeChange(m) }}
+              className={`px-2 py-0.5 transition-colors ${mode === m ? `${accentClass} text-white font-medium` : 'bg-white text-slate-500 hover:bg-slate-50'}`}>
+              {m === 'percentual' ? '%' : 'R$'}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 focus-within:border-blue-400">
+        <input type="number" step={isPercent ? 0.001 : 100} min={0}
+          value={displayVal}
+          onChange={(e) => { const r = parseFloat(e.target.value); if (!isNaN(r)) onChange(isPercent ? r / 100 : r) }}
+          className="w-full min-w-0 bg-transparent text-sm outline-none" />
         <span className="shrink-0 text-xs text-slate-400">{isPercent ? '%' : 'R$'}</span>
       </div>
     </div>
@@ -205,6 +250,14 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
               onChange={(v) => onConsorcioChange({ ...consorcioParams, [f.key]: v })}
             />
           ))}
+          <CampoAdesao
+            mode={consorcioParams.taxaAdesaoMode}
+            value={consorcioParams.taxaAdesao}
+            accentClass="bg-blue-600"
+            borderClass="border-blue-200"
+            onModeChange={(m) => onConsorcioChange({ ...consorcioParams, taxaAdesaoMode: m, taxaAdesao: 0 })}
+            onChange={(v) => onConsorcioChange({ ...consorcioParams, taxaAdesao: v })}
+          />
           <CampoLance
             lanceMode={consorcioParams.lanceMode}
             lance={consorcioParams.lance}

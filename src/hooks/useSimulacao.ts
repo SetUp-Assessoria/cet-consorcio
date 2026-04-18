@@ -8,6 +8,7 @@ export const DEFAULT_CONSORCIO: ConsorcioParams = {
   parcelas: 90,
   taxaAdm: 0.15,
   taxaAdesao: 0,
+  taxaAdesaoMode: 'percentual',
   fundoReserva: 0.02,
   seguro: 0.00038,
   ipca: 0.055,

@@ -6,11 +6,12 @@ export interface ConsorcioParams {
   valorCarta: number
   parcelas: number
   taxaAdm: number
-  taxaAdesao: number
+  taxaAdesao: number       // fração (0–1) se percentual; R$ absoluto se financeiro
+  taxaAdesaoMode: LanceMode
   fundoReserva: number
   seguro: number
   ipca: number
-  lance: number        // fração (0–1) se percentual; R$ absoluto se financeiro
+  lance: number            // fração (0–1) se percentual; R$ absoluto se financeiro
   lanceMode: LanceMode
   parcelaLance: number
   baseReajuste: BaseReajuste

@@ -31,6 +31,7 @@ describe('calcularConsorcio', () => {
     parcelas: 90,
     taxaAdm: 0.15,      // 15% total
     taxaAdesao: 0,
+    taxaAdesaoMode: 'percentual' as const,
     fundoReserva: 0.02, // 2% total
     seguro: 0.00038,    // 0.038%
     ipca: 0.055,
