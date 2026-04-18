@@ -61,9 +61,10 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
 
     totalPago += parcela + lanceAtual
 
-    // IRR: no mês do lance recebe a carta (deduzida do lance) além da saída normal
+    // IRR: no mês do lance, entrada = creditoLiberado (carta − lance); saída = parcela
+    // O lance não entra como saída separada — já está absorvido no crédito líquido
     if (lanceAtual > 0) {
-      fluxoIRR.push((cartaAjustada - lanceAtual) - parcela - lanceAtual)
+      fluxoIRR.push((cartaAjustada - lanceAtual) - parcela)
     } else {
       fluxoIRR.push(-parcela)
     }
