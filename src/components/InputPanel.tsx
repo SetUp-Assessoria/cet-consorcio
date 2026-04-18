@@ -20,13 +20,6 @@ const CONSORCIO_FIELDS: FieldDef[] = [
   { key: 'valorizacaoImovel', label: 'Valorização do bem acima do índice de reajuste contratual', unit: '%', step: 0.001, min: 0, max: 0.5, isPercent: true },
 ]
 
-const FINANCIAMENTO_FIELDS: FieldDef[] = [
-  { key: 'valorCarta', label: 'Valor do Bem', unit: 'R$', step: 1000, min: 1000, max: 10000000 },
-  { key: 'valorEntrada', label: 'Valor de Entrada', unit: 'R$', step: 1000, min: 0, max: 10000000 },
-  { key: 'parcelas', label: 'Nº Parcelas', unit: 'meses', step: 1, min: 12, max: 360 },
-  { key: 'taxaMensal', label: 'Tarifa Mensal', unit: 'R$', step: 10, min: 0, max: 10000 },
-  { key: 'seguro', label: 'Seguro (% do bem)', unit: '%', step: 0.001, min: 0, max: 0.1, isPercent: true },
-]
 
 const TIPO_CONTEMPLACAO_OPTIONS: { value: TipoContemplacao; label: string }[] = [
   { value: 'sorteio', label: 'Sorteio' },
