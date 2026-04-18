@@ -336,7 +336,7 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
           </div>
           <div className="mt-1">
             <Campo
-              field={{ key: 'indiceAnual', label: `${financiamentoParams.indexador} (a.a.)`, unit: '%', step: 0.001, min: 0, max: 0.5, isPercent: true }}
+              field={{ key: 'indiceAnual', label: 'Índice de Reajuste (a.a.)', unit: '%', step: 0.001, min: 0, max: 0.5, isPercent: true }}
               value={financiamentoParams.indiceAnual}
               onChange={(v) => onFinanciamentoChange({ ...financiamentoParams, indiceAnual: v })}
             />
