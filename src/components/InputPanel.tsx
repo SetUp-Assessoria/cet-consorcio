@@ -78,7 +78,7 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
             <Campo
               key={f.key}
               field={f}
-              value={(consorcioParams as Record<string, number>)[f.key]}
+              value={(consorcioParams as unknown as Record<string, number>)[f.key]}
               onChange={(v) => onConsorcioChange({ ...consorcioParams, [f.key]: v })}
             />
           ))}
@@ -93,7 +93,7 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
             <Campo
               key={f.key}
               field={f}
-              value={(financiamentoParams as Record<string, number>)[f.key]}
+              value={(financiamentoParams as unknown as Record<string, number>)[f.key]}
               onChange={(v) => onFinanciamentoChange({ ...financiamentoParams, [f.key]: v })}
             />
           ))}

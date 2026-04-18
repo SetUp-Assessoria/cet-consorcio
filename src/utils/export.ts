@@ -87,7 +87,7 @@ export async function exportPDF(
   })
 
   autoTable(doc, {
-    startY: (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6,
+    startY: (doc as InstanceType<typeof jsPDF> & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6,
     head: [['Mês', 'C_Parcela', 'C_Lance', 'C_Saldo Aj.', 'F_Parcela', 'F_Lance', 'F_Saldo Aj.']],
     body: tableData,
     theme: 'striped',

@@ -39,7 +39,7 @@ export function Graficos({ consorcioLinhas, financiamentoLinhas }: Props) {
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis dataKey="mes" tick={{ fontSize: 10 }} label={{ value: 'Mês', position: 'insideBottom', offset: -2, fontSize: 10 }} />
             <YAxis tickFormatter={tickFormatter} tick={{ fontSize: 10 }} width={60} />
-            <Tooltip formatter={(v: number) => moeda(v)} labelFormatter={(l) => `Mês ${l}`} />
+            <Tooltip formatter={(v) => moeda(Number(v))} labelFormatter={(l) => `Mês ${l}`} />
             <Legend wrapperStyle={{ fontSize: 11 }} />
             <Line dataKey="saldoC" name="Consórcio" stroke="#3b82f6" dot={false} strokeWidth={2} connectNulls />
             <Line dataKey="saldoF" name="Financiamento" stroke="#f97316" dot={false} strokeWidth={2} connectNulls />
@@ -55,7 +55,7 @@ export function Graficos({ consorcioLinhas, financiamentoLinhas }: Props) {
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis dataKey="mes" tick={{ fontSize: 10 }} label={{ value: 'Mês', position: 'insideBottom', offset: -2, fontSize: 10 }} />
             <YAxis tickFormatter={tickFormatter} tick={{ fontSize: 10 }} width={60} />
-            <Tooltip formatter={(v: number) => moeda(v)} labelFormatter={(l) => `Mês ${l}`} />
+            <Tooltip formatter={(v) => moeda(Number(v))} labelFormatter={(l) => `Mês ${l}`} />
             <Legend wrapperStyle={{ fontSize: 11 }} />
             <Line dataKey="parcelaC" name="Consórcio" stroke="#3b82f6" dot={false} strokeWidth={2} connectNulls />
             <Line dataKey="parcelaF" name="Financiamento" stroke="#f97316" dot={false} strokeWidth={2} connectNulls />
