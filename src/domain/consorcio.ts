@@ -118,9 +118,25 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
   const tirAnual = Math.pow(1 + tirMensal, 12) - 1
   const vplVal = npv(tirMensal, fluxoCET.slice(1)) + fluxoCET[0]
 
-  // CET ajustado: CET padrão composto com a valorização anual do bem informada.
-  // Reflete o custo de oportunidade de aguardar a contemplação enquanto o imóvel aprecia.
-  const tirAnualOpp = (1 + tirAnual) * (1 + p.valorizacaoImovel) - 1
+  // CET ajustado: tenta t=k primeiro (válido quando há troca de sinal única no fluxo,
+  // ex: lance próprio que reduz o crédito mas mantém entrada líquida positiva).
+  // Se não convergir (sorteio em prazos longos → sem raiz positiva), cai no PV:
+  // crédito trazido a t=0 descontado por IPCA + valorização do bem, capturando o
+  // custo real de aguardar sem quebrar a convergência do IRR.
+  const fluxoTK = [0, ...linhas.map((l, i) => {
+    const saida = -(l.parcela + l.lance)
+    return i + 1 === p.parcelaContemplacao ? creditoLiberado + saida : saida
+  })]
+  const tirMensalTK = irr(fluxoTK, 0, 2)
+  let tirAnualOpp: number
+  if (isFinite(tirMensalTK) && !isNaN(tirMensalTK)) {
+    tirAnualOpp = Math.pow(1 + tirMensalTK, 12) - 1
+  } else {
+    const rDiscountMensal = Math.pow((1 + p.ipca) * (1 + p.valorizacaoImovel), 1 / 12) - 1
+    const creditoPV = creditoLiberado / Math.pow(1 + rDiscountMensal, p.parcelaContemplacao)
+    const fluxoPV = [creditoPV, ...linhas.map(l => -(l.parcela + l.lance))]
+    tirAnualOpp = Math.pow(1 + irr(fluxoPV), 12) - 1
+  }
 
   return {
     saldoDevedor: totalContratado,
