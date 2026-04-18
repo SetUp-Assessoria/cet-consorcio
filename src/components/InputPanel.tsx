@@ -105,6 +105,11 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
               </label>
             ))}
           </div>
+          <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+            {consorcioParams.baseReajuste === 'totalContratado'
+              ? 'O índice reajusta carta + taxas (adm, fundo, seguro). Parcela e saldo crescem sobre o valor total — cenário mais conservador.'
+              : 'O índice reajusta apenas o valor da carta. As taxas (adm, fundo, seguro) permanecem fixas no valor original — custo efetivo menor.'}
+          </p>
         </div>
       </div>
 
