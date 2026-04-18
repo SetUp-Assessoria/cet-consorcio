@@ -1,4 +1,4 @@
-import type { BaseReajuste, ConsorcioParams, FinanciamentoParams } from '../domain/types'
+import type { BaseReajuste, LanceMode, ConsorcioParams, FinanciamentoParams } from '../domain/types'
 
 type FieldDef = {
   key: string
@@ -18,7 +18,6 @@ const CONSORCIO_FIELDS: FieldDef[] = [
   { key: 'fundoReserva', label: 'Fundo Reserva (total)', unit: '%', step: 0.001, min: 0, max: 0.1, isPercent: true },
   { key: 'seguro', label: 'Seguro Prestamista', unit: '%', step: 0.00001, min: 0, max: 0.01, isPercent: true },
   { key: 'ipca', label: 'IPCA (a.a.)', unit: '%', step: 0.001, min: 0, max: 0.3, isPercent: true },
-  { key: 'lance', label: 'Lance', unit: '%', step: 0.01, min: 0, max: 1, isPercent: true },
   { key: 'parcelaLance', label: 'Parcela do Lance', unit: 'mês', step: 1, min: 1, max: 240 },
 ]
 
@@ -30,7 +29,6 @@ const FINANCIAMENTO_FIELDS: FieldDef[] = [
   { key: 'fundoReserva', label: 'Fundo Reserva', unit: '%', step: 0.001, min: 0, max: 0.1, isPercent: true },
   { key: 'seguro', label: 'Seguro Prestamista', unit: '%', step: 0.001, min: 0, max: 0.1, isPercent: true },
   { key: 'ipca', label: 'IPCA (a.a.)', unit: '%', step: 0.001, min: 0, max: 0.3, isPercent: true },
-  { key: 'lance', label: 'Lance', unit: '%', step: 0.01, min: 0, max: 1, isPercent: true },
   { key: 'parcelaLance', label: 'Parcela do Lance (0=início)', unit: 'mês', step: 1, min: 0, max: 360 },
 ]
 
@@ -60,6 +58,70 @@ function Campo({ field, value, onChange }: { field: FieldDef; value: number; onC
   )
 }
 
+function CampoLance({
+  lanceMode,
+  lance,
+  accentClass,
+  borderClass,
+  onModeChange,
+  onLanceChange,
+}: {
+  lanceMode: LanceMode
+  lance: number
+  accentClass: string
+  borderClass: string
+  onModeChange: (m: LanceMode) => void
+  onLanceChange: (v: number) => void
+}) {
+  const isPercent = lanceMode === 'percentual'
+  const displayVal = isPercent ? +(lance * 100).toFixed(4) : lance
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-medium text-slate-500">Lance</label>
+        <div className={`flex rounded border ${borderClass} overflow-hidden text-xs`}>
+          {(['percentual', 'financeiro'] as LanceMode[]).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => {
+                if (m === lanceMode) return
+                // Reset lance to 0 when switching mode to avoid nonsensical values
+                onLanceChange(0)
+                onModeChange(m)
+              }}
+              className={`px-2 py-0.5 transition-colors ${
+                lanceMode === m
+                  ? `${accentClass} text-white font-medium`
+                  : 'bg-white text-slate-500 hover:bg-slate-50'
+              }`}
+            >
+              {m === 'percentual' ? '%' : 'R$'}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 focus-within:border-blue-400">
+        <input
+          type="number"
+          step={isPercent ? 0.01 : 1000}
+          min={0}
+          max={isPercent ? 100 : undefined}
+          value={displayVal}
+          onChange={(e) => {
+            const raw = parseFloat(e.target.value)
+            if (isNaN(raw)) return
+            onLanceChange(isPercent ? raw / 100 : raw)
+          }}
+          className="w-full min-w-0 bg-transparent text-sm outline-none"
+        />
+        <span className="shrink-0 text-xs text-slate-400">{isPercent ? '%' : 'R$'}</span>
+      </div>
+    </div>
+  )
+}
+
 interface Props {
   consorcioParams: ConsorcioParams
   onConsorcioChange: (p: ConsorcioParams) => void
@@ -82,6 +144,14 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
               onChange={(v) => onConsorcioChange({ ...consorcioParams, [f.key]: v })}
             />
           ))}
+          <CampoLance
+            lanceMode={consorcioParams.lanceMode}
+            lance={consorcioParams.lance}
+            accentClass="bg-blue-600"
+            borderClass="border-blue-200"
+            onModeChange={(m) => onConsorcioChange({ ...consorcioParams, lanceMode: m, lance: 0 })}
+            onLanceChange={(v) => onConsorcioChange({ ...consorcioParams, lance: v })}
+          />
         </div>
 
         {/* Seletor de base do reajuste anual */}
@@ -125,6 +195,14 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
               onChange={(v) => onFinanciamentoChange({ ...financiamentoParams, [f.key]: v })}
             />
           ))}
+          <CampoLance
+            lanceMode={financiamentoParams.lanceMode}
+            lance={financiamentoParams.lance}
+            accentClass="bg-orange-500"
+            borderClass="border-orange-200"
+            onModeChange={(m) => onFinanciamentoChange({ ...financiamentoParams, lanceMode: m, lance: 0 })}
+            onLanceChange={(v) => onFinanciamentoChange({ ...financiamentoParams, lance: v })}
+          />
         </div>
       </div>
     </div>

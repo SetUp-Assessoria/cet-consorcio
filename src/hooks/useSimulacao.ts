@@ -12,6 +12,7 @@ export const DEFAULT_CONSORCIO: ConsorcioParams = {
   seguro: 0.00038,
   ipca: 0.055,
   lance: 0,
+  lanceMode: 'percentual',
   parcelaLance: 12,
   baseReajuste: 'totalContratado',
 }
@@ -25,6 +26,7 @@ export const DEFAULT_FINANCIAMENTO: FinanciamentoParams = {
   seguro: 0.01,
   ipca: 0.055,
   lance: 0.60,
+  lanceMode: 'percentual',
   parcelaLance: 0,
 }
 

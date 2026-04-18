@@ -4,7 +4,7 @@ import { irr, npv } from './financeiro'
 export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
   const fatorCustas = p.taxaAdm + p.taxaAdesao + p.fundoReserva + p.seguro * p.parcelas
   const totalContratado = p.valorCarta * (1 + fatorCustas)
-  const valorLance = totalContratado * p.lance
+  const valorLance = p.lanceMode === 'financeiro' ? p.lance : totalContratado * p.lance
   const parcelaInicial = totalContratado / p.parcelas
 
   // Saldo rastreado em dois componentes para aplicar reajuste seletivo

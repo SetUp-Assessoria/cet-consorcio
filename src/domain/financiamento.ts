@@ -4,7 +4,7 @@ import { pmt, irr, npv } from './financeiro'
 export function calcularFinanciamento(p: FinanciamentoParams): ResultadoSimulacao {
   const custas = p.taxaAdesao + p.fundoReserva + p.seguro
   const saldoInicial = p.valorCarta * (1 + custas)
-  const valorLance = saldoInicial * p.lance
+  const valorLance = p.lanceMode === 'financeiro' ? p.lance : saldoInicial * p.lance
 
   // Saldo após lance automático (aplicado antes das parcelas)
   const saldoAposLance = Math.max(0, saldoInicial - valorLance)

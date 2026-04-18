@@ -35,6 +35,7 @@ describe('calcularConsorcio', () => {
     seguro: 0.00038,    // 0.038%
     ipca: 0.055,
     lance: 0,
+    lanceMode: 'percentual' as const,
     parcelaLance: 12,
     baseReajuste: 'totalContratado' as const,
   }
@@ -84,6 +85,7 @@ describe('calcularFinanciamento', () => {
     seguro: 0.01,
     ipca: 0.055,
     lance: 0.60,
+    lanceMode: 'percentual' as const,
     parcelaLance: 0,
   }
 

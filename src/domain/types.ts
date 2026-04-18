@@ -1,5 +1,7 @@
 export type BaseReajuste = 'totalContratado' | 'valorCarta'
 
+export type LanceMode = 'percentual' | 'financeiro'
+
 export interface ConsorcioParams {
   valorCarta: number
   parcelas: number
@@ -8,9 +10,10 @@ export interface ConsorcioParams {
   fundoReserva: number
   seguro: number
   ipca: number
-  lance: number
+  lance: number        // fração (0–1) se percentual; R$ absoluto se financeiro
+  lanceMode: LanceMode
   parcelaLance: number
-  baseReajuste: BaseReajuste  // define se o reajuste anual incide sobre o total contratado ou só sobre o valor da carta
+  baseReajuste: BaseReajuste
 }
 
 export interface FinanciamentoParams {
@@ -21,7 +24,8 @@ export interface FinanciamentoParams {
   fundoReserva: number  // % ex: 0.01
   seguro: number        // % ex: 0.01
   ipca: number          // % a.a.
-  lance: number         // % ex: 0.60
+  lance: number         // fração (0–1) se percentual; R$ absoluto se financeiro
+  lanceMode: LanceMode
   parcelaLance: number  // mês (0 = sem lance)
 }
 
