@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { ResultadoSimulacao } from '../domain/types'
-import { exportCSV, exportPDF } from '../utils/export'
+import { exportXLSX, exportPDF } from '../utils/export'
 
 interface Props {
   consorcio: ResultadoSimulacao
@@ -9,6 +9,16 @@ interface Props {
 
 export function BotoesExport({ consorcio, financiamento }: Props) {
   const [pdfLoading, setPdfLoading] = useState(false)
+  const [xlsxLoading, setXlsxLoading] = useState(false)
+
+  const handleXLSX = async () => {
+    setXlsxLoading(true)
+    try {
+      await exportXLSX(consorcio, financiamento)
+    } finally {
+      setXlsxLoading(false)
+    }
+  }
 
   const handlePDF = async () => {
     setPdfLoading(true)
@@ -22,10 +32,11 @@ export function BotoesExport({ consorcio, financiamento }: Props) {
   return (
     <div className="flex gap-2">
       <button
-        onClick={() => exportCSV(consorcio, financiamento)}
-        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 active:scale-95 transition-transform"
+        onClick={handleXLSX}
+        disabled={xlsxLoading}
+        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 active:scale-95 transition-transform disabled:opacity-60"
       >
-        Exportar CSV
+        {xlsxLoading ? 'Gerando...' : 'Exportar Excel'}
       </button>
       <button
         onClick={handlePDF}

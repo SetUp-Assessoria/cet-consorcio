@@ -1,43 +1,73 @@
-import type { LinhaAmortizacao, ResultadoSimulacao } from '../domain/types'
+import type { ResultadoSimulacao } from '../domain/types'
 import { moeda, pct } from './format'
 
-export function exportCSV(
+// ---------- XLSX (duas abas) ----------
+
+function buildSheet(r: ResultadoSimulacao) {
+  const aoa: (string | number)[][] = [
+    ['Resumo'],
+    [],
+    ['Parcela Inicial', r.parcelaInicial],
+    ['Total Pago', r.totalPago],
+    ['Crédito Liberado', r.creditoLiberado],
+    ['TIR Anual (CET)', r.tirAnual],
+    ['Saldo Inicial', r.saldoDevedor],
+    [],
+    ['Mês', 'Parcela', 'Lance', 'Saldo Devedor', 'Valor da Carta'],
+    ...r.linhas.map((l) => [
+      l.mes,
+      l.parcela,
+      l.lance,
+      Math.max(0, l.saldo),
+      l.cartaAjustada,
+    ]),
+  ]
+  return aoa
+}
+
+export async function exportXLSX(
   consorcio: ResultadoSimulacao,
   financiamento: ResultadoSimulacao,
 ) {
-  const maxRows = Math.max(consorcio.linhas.length, financiamento.linhas.length)
-  const rows: string[] = [
-    'Mês;C_Parcela;C_Lance;C_Saldo;C_SaldoAj;C_CartaAj;F_Parcela;F_Lance;F_Saldo;F_SaldoAj;F_CartaAj',
-  ]
+  const XLSX = await import('xlsx')
 
-  for (let i = 0; i < maxRows; i++) {
-    const c: LinhaAmortizacao | undefined = consorcio.linhas[i]
-    const f: LinhaAmortizacao | undefined = financiamento.linhas[i]
-    rows.push(
-      [
-        i + 1,
-        c ? c.parcela.toFixed(2) : '',
-        c ? c.lance.toFixed(2) : '',
-        c ? Math.max(0, c.saldo).toFixed(2) : '',
-        c ? Math.max(0, c.saldoAjustado).toFixed(2) : '',
-        c ? c.cartaAjustada.toFixed(2) : '',
-        f ? f.parcela.toFixed(2) : '',
-        f ? f.lance.toFixed(2) : '',
-        f ? Math.max(0, f.saldo).toFixed(2) : '',
-        f ? Math.max(0, f.saldoAjustado).toFixed(2) : '',
-        f ? f.cartaAjustada.toFixed(2) : '',
-      ].join(';'),
-    )
-  }
+  const wb = XLSX.utils.book_new()
 
-  const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'simulacao-consorcio.csv'
-  a.click()
-  URL.revokeObjectURL(url)
+  const wsC = XLSX.utils.aoa_to_sheet(buildSheet(consorcio))
+  const wsF = XLSX.utils.aoa_to_sheet(buildSheet(financiamento))
+
+  // Formata colunas monetárias e percentual nas linhas de resumo
+  const fmtBRL = '"R$"#,##0.00'
+  const fmtPct = '0.0000%'
+  ;[wsC, wsF].forEach((ws) => {
+    // Resumo: B3=parcelaInicial, B4=totalPago, B5=creditoLiberado, B7=saldoDevedor
+    ;['B3', 'B4', 'B5', 'B7'].forEach((ref) => {
+      if (ws[ref]) ws[ref].z = fmtBRL
+    })
+    // B6 = tirAnual
+    if (ws['B6']) ws['B6'].z = fmtPct
+
+    // Tabela de amortização: começa na linha 10 (1-indexed)
+    const range = XLSX.utils.decode_range(ws['!ref'] ?? 'A1')
+    for (let row = 9; row <= range.e.r; row++) {
+      // col B=1 (Parcela), C=2 (Lance), D=3 (Saldo), E=4 (Carta)
+      for (const col of [1, 2, 3, 4]) {
+        const cell = ws[XLSX.utils.encode_cell({ r: row, c: col })]
+        if (cell && typeof cell.v === 'number') cell.z = fmtBRL
+      }
+    }
+
+    // Largura das colunas
+    ws['!cols'] = [{ wch: 20 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 16 }]
+  })
+
+  XLSX.utils.book_append_sheet(wb, wsC, 'Consórcio')
+  XLSX.utils.book_append_sheet(wb, wsF, 'Financiamento')
+
+  XLSX.writeFile(wb, 'simulacao-consorcio.xlsx')
 }
+
+// ---------- PDF ----------
 
 export async function exportPDF(
   consorcio: ResultadoSimulacao,
@@ -52,12 +82,12 @@ export async function exportPDF(
   doc.text('Simulador — Comparativo Consórcio vs Financiamento', 14, 14)
   doc.setFontSize(9)
 
-  // Resumo
   const resumo = [
     ['', 'Consórcio', 'Financiamento'],
     ['Saldo Inicial', moeda(consorcio.saldoDevedor), moeda(financiamento.saldoDevedor)],
     ['Parcela Inicial', moeda(consorcio.parcelaInicial), moeda(financiamento.parcelaInicial)],
     ['Total Pago', moeda(consorcio.totalPago), moeda(financiamento.totalPago)],
+    ['Crédito Liberado', moeda(consorcio.creditoLiberado), moeda(financiamento.creditoLiberado)],
     ['TIR Anual (CET)', pct(consorcio.tirAnual), pct(financiamento.tirAnual)],
   ]
 
@@ -70,7 +100,6 @@ export async function exportPDF(
     headStyles: { fillColor: [30, 64, 175] },
   })
 
-  // Tabela de amortização
   const maxRows = Math.max(consorcio.linhas.length, financiamento.linhas.length)
   const tableData = Array.from({ length: maxRows }, (_, i) => {
     const c = consorcio.linhas[i]
@@ -79,16 +108,18 @@ export async function exportPDF(
       i + 1,
       c ? moeda(c.parcela) : '',
       c ? (c.lance > 0 ? moeda(c.lance) : '—') : '',
-      c ? moeda(Math.max(0, c.saldoAjustado)) : '',
+      c ? moeda(Math.max(0, c.saldo)) : '',
+      c ? moeda(c.cartaAjustada) : '',
       f ? moeda(f.parcela) : '',
       f ? (f.lance > 0 ? moeda(f.lance) : '—') : '',
-      f ? moeda(Math.max(0, f.saldoAjustado)) : '',
+      f ? moeda(Math.max(0, f.saldo)) : '',
+      f ? moeda(f.cartaAjustada) : '',
     ]
   })
 
   autoTable(doc, {
     startY: (doc as InstanceType<typeof jsPDF> & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6,
-    head: [['Mês', 'C_Parcela', 'C_Lance', 'C_Saldo Aj.', 'F_Parcela', 'F_Lance', 'F_Saldo Aj.']],
+    head: [['Mês', 'C_Parcela', 'C_Lance', 'C_Saldo', 'C_Carta', 'F_Parcela', 'F_Lance', 'F_Saldo', 'F_Carta']],
     body: tableData,
     theme: 'striped',
     styles: { fontSize: 6.5 },
