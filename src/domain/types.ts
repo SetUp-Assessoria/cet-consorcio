@@ -16,17 +16,19 @@ export interface ConsorcioParams {
   baseReajuste: BaseReajuste
 }
 
+export type TaxaJurosMode = 'mensal' | 'anual'
+export type Indexador = 'IPCA' | 'INCC' | 'TR'
+
 export interface FinanciamentoParams {
   valorCarta: number
   parcelas: number
-  taxaJuros: number     // % a.m. ex: 0.015
-  taxaAdesao: number    // % ex: 0.01
-  fundoReserva: number  // % ex: 0.01
-  seguro: number        // % ex: 0.01
-  ipca: number          // % a.a.
-  lance: number         // fração (0–1) se percentual; R$ absoluto se financeiro
-  lanceMode: LanceMode
-  parcelaLance: number  // mês (0 = sem lance)
+  taxaJuros: number         // sempre % a.m. (domínio usa esta)
+  taxaJurosMode: TaxaJurosMode
+  taxaMensal: number        // tarifa mensal fixa em R$
+  fundoReserva: number      // % ex: 0.01
+  seguro: number            // % ex: 0.01
+  indexador: Indexador
+  indiceAnual: number       // taxa a.a. do indexador escolhido
 }
 
 export interface LinhaAmortizacao {

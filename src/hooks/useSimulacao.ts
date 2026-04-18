@@ -21,13 +21,12 @@ export const DEFAULT_FINANCIAMENTO: FinanciamentoParams = {
   valorCarta: 200000,
   parcelas: 200,
   taxaJuros: 0.015,
-  taxaAdesao: 0.01,
+  taxaJurosMode: 'mensal',
+  taxaMensal: 0,
   fundoReserva: 0.01,
   seguro: 0.01,
-  ipca: 0.055,
-  lance: 0.60,
-  lanceMode: 'percentual',
-  parcelaLance: 0,
+  indexador: 'IPCA',
+  indiceAnual: 0.055,
 }
 
 export function useSimulacao() {

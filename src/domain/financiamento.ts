@@ -2,13 +2,10 @@ import type { FinanciamentoParams, LinhaAmortizacao, ResultadoSimulacao } from '
 import { pmt, irr, npv } from './financeiro'
 
 export function calcularFinanciamento(p: FinanciamentoParams): ResultadoSimulacao {
-  const custas = p.taxaAdesao + p.fundoReserva + p.seguro
+  const custas = p.fundoReserva + p.seguro
   const saldoInicial = p.valorCarta * (1 + custas)
-  const valorLance = p.lanceMode === 'financeiro' ? p.lance : saldoInicial * p.lance
-
-  // Saldo após lance automático (aplicado antes das parcelas)
-  const saldoAposLance = Math.max(0, saldoInicial - valorLance)
-  const parcelaInicial = pmt(p.taxaJuros, p.parcelas, saldoAposLance)
+  const parcelaBase = pmt(p.taxaJuros, p.parcelas, saldoInicial)
+  const parcelaInicial = parcelaBase + p.taxaMensal
 
   const linhas: LinhaAmortizacao[] = []
   let saldo = saldoInicial
@@ -18,31 +15,23 @@ export function calcularFinanciamento(p: FinanciamentoParams): ResultadoSimulaca
   const fluxoIRR: number[] = [p.valorCarta]
 
   for (let mes = 1; mes <= p.parcelas; mes++) {
-    // Reajuste IPCA a cada 12 meses
     if (mes > 1 && (mes - 1) % 12 === 0) {
-      cartaAjustada = cartaAjustada * (1 + p.ipca)
+      cartaAjustada = cartaAjustada * (1 + p.indiceAnual)
     }
 
-    const lanceAtual =
-      p.parcelaLance > 0 && mes === p.parcelaLance && p.lance > 0
-        ? valorLance
-        : mes === 1 && p.parcelaLance === 0 && p.lance > 0
-          ? valorLance
-          : 0
-
-    // Juros do período sobre saldo atual
     const juros = saldo * p.taxaJuros
-    const amortizacao = Math.max(0, parcelaInicial - juros)
-    const parcelaReal = Math.min(parcelaInicial, saldo + juros)
+    const amortizacao = Math.max(0, parcelaBase - juros)
+    const parcelaJuros = Math.min(parcelaBase, saldo + juros)
+    const parcelaReal = parcelaJuros + p.taxaMensal
 
-    saldo = Math.max(0, saldo - amortizacao - lanceAtual)
-    totalPago += parcelaReal + lanceAtual
-    fluxoIRR.push(-(parcelaReal + lanceAtual))
+    saldo = Math.max(0, saldo - amortizacao)
+    totalPago += parcelaReal
+    fluxoIRR.push(-parcelaReal)
 
     linhas.push({
       mes,
       parcela: parcelaReal,
-      lance: lanceAtual,
+      lance: 0,
       saldo,
       saldoAjustado: saldo,
       cartaAjustada,
@@ -59,7 +48,7 @@ export function calcularFinanciamento(p: FinanciamentoParams): ResultadoSimulaca
     saldoDevedor: saldoInicial,
     parcelaInicial,
     totalPago,
-    creditoLiberado: saldoAposLance,
+    creditoLiberado: p.valorCarta,
     tirMensal,
     tirAnual,
     vpl: vplVal,

@@ -1,4 +1,4 @@
-import type { BaseReajuste, LanceMode, ConsorcioParams, FinanciamentoParams } from '../domain/types'
+import type { BaseReajuste, LanceMode, TaxaJurosMode, Indexador, ConsorcioParams, FinanciamentoParams } from '../domain/types'
 
 type FieldDef = {
   key: string
@@ -24,12 +24,9 @@ const CONSORCIO_FIELDS: FieldDef[] = [
 const FINANCIAMENTO_FIELDS: FieldDef[] = [
   { key: 'valorCarta', label: 'Valor do Bem', unit: 'R$', step: 1000, min: 1000, max: 10000000 },
   { key: 'parcelas', label: 'Nº Parcelas', unit: 'meses', step: 1, min: 12, max: 360 },
-  { key: 'taxaJuros', label: 'Taxa de Juros (a.m.)', unit: '%', step: 0.001, min: 0, max: 0.05, isPercent: true },
-  { key: 'taxaAdesao', label: 'Taxa Adesão', unit: '%', step: 0.001, min: 0, max: 0.1, isPercent: true },
+  { key: 'taxaMensal', label: 'Tarifa Mensal', unit: 'R$', step: 10, min: 0, max: 10000 },
   { key: 'fundoReserva', label: 'Fundo Reserva', unit: '%', step: 0.001, min: 0, max: 0.1, isPercent: true },
   { key: 'seguro', label: 'Seguro Prestamista', unit: '%', step: 0.001, min: 0, max: 0.1, isPercent: true },
-  { key: 'ipca', label: 'IPCA (a.a.)', unit: '%', step: 0.001, min: 0, max: 0.3, isPercent: true },
-  { key: 'parcelaLance', label: 'Parcela do Lance (0=início)', unit: 'mês', step: 1, min: 0, max: 360 },
 ]
 
 function Campo({ field, value, onChange }: { field: FieldDef; value: number; onChange: (v: number) => void }) {
@@ -122,6 +119,70 @@ function CampoLance({
   )
 }
 
+function CampoTaxaJuros({
+  taxaJuros,
+  taxaJurosMode,
+  onChange,
+}: {
+  taxaJuros: number
+  taxaJurosMode: TaxaJurosMode
+  onChange: (taxaJuros: number, mode: TaxaJurosMode) => void
+}) {
+  // taxaJuros armazenado sempre em a.m.; exibe convertido quando modo é anual
+  const isAnual = taxaJurosMode === 'anual'
+  const displayVal = isAnual
+    ? +((Math.pow(1 + taxaJuros, 12) - 1) * 100).toFixed(4)
+    : +(taxaJuros * 100).toFixed(4)
+
+  const handleChange = (raw: number) => {
+    const frac = raw / 100
+    const mensal = isAnual ? Math.pow(1 + frac, 1 / 12) - 1 : frac
+    onChange(mensal, taxaJurosMode)
+  }
+
+  const handleModeChange = (mode: TaxaJurosMode) => {
+    onChange(taxaJuros, mode) // mantém a taxa mensal; só muda exibição
+  }
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-medium text-slate-500">Taxa de Juros</label>
+        <div className="flex rounded border border-orange-200 overflow-hidden text-xs">
+          {(['mensal', 'anual'] as TaxaJurosMode[]).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => handleModeChange(m)}
+              className={`px-2 py-0.5 transition-colors ${
+                taxaJurosMode === m
+                  ? 'bg-orange-500 text-white font-medium'
+                  : 'bg-white text-slate-500 hover:bg-slate-50'
+              }`}
+            >
+              {m === 'mensal' ? 'a.m.' : 'a.a.'}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 focus-within:border-blue-400">
+        <input
+          type="number"
+          step={isAnual ? 0.01 : 0.001}
+          min={0}
+          value={displayVal}
+          onChange={(e) => {
+            const raw = parseFloat(e.target.value)
+            if (!isNaN(raw)) handleChange(raw)
+          }}
+          className="w-full min-w-0 bg-transparent text-sm outline-none"
+        />
+        <span className="shrink-0 text-xs text-slate-400">%</span>
+      </div>
+    </div>
+  )
+}
+
 interface Props {
   consorcioParams: ConsorcioParams
   onConsorcioChange: (p: ConsorcioParams) => void
@@ -185,7 +246,7 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
 
       {/* Financiamento */}
       <div className="rounded-xl border border-orange-100 bg-orange-50 p-4">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-orange-700">Financiamento</h2>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-orange-700">Financiamento Imobiliário</h2>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {FINANCIAMENTO_FIELDS.map((f) => (
             <Campo
@@ -195,14 +256,38 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
               onChange={(v) => onFinanciamentoChange({ ...financiamentoParams, [f.key]: v })}
             />
           ))}
-          <CampoLance
-            lanceMode={financiamentoParams.lanceMode}
-            lance={financiamentoParams.lance}
-            accentClass="bg-orange-500"
-            borderClass="border-orange-200"
-            onModeChange={(m) => onFinanciamentoChange({ ...financiamentoParams, lanceMode: m, lance: 0 })}
-            onLanceChange={(v) => onFinanciamentoChange({ ...financiamentoParams, lance: v })}
+          <CampoTaxaJuros
+            taxaJuros={financiamentoParams.taxaJuros}
+            taxaJurosMode={financiamentoParams.taxaJurosMode}
+            onChange={(taxa, mode) => onFinanciamentoChange({ ...financiamentoParams, taxaJuros: taxa, taxaJurosMode: mode })}
           />
+        </div>
+
+        {/* Indexador de reajuste */}
+        <div className="mt-3 flex flex-col gap-1">
+          <p className="text-xs font-medium text-slate-500">Indexador de reajuste anual</p>
+          <div className="flex gap-3">
+            {(['IPCA', 'INCC', 'TR'] as Indexador[]).map((idx) => (
+              <label key={idx} className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="indexador"
+                  value={idx}
+                  checked={financiamentoParams.indexador === idx}
+                  onChange={() => onFinanciamentoChange({ ...financiamentoParams, indexador: idx })}
+                  className="accent-orange-500"
+                />
+                <span className="text-xs text-slate-700">{idx}</span>
+              </label>
+            ))}
+          </div>
+          <div className="mt-1">
+            <Campo
+              field={{ key: 'indiceAnual', label: `${financiamentoParams.indexador} (a.a.)`, unit: '%', step: 0.001, min: 0, max: 0.5, isPercent: true }}
+              value={financiamentoParams.indiceAnual}
+              onChange={(v) => onFinanciamentoChange({ ...financiamentoParams, indiceAnual: v })}
+            />
+          </div>
         </div>
       </div>
     </div>

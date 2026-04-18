@@ -80,19 +80,18 @@ describe('calcularFinanciamento', () => {
     valorCarta: 200000,
     parcelas: 200,
     taxaJuros: 0.015,
-    taxaAdesao: 0.01,
+    taxaJurosMode: 'mensal' as const,
+    taxaMensal: 0,
     fundoReserva: 0.01,
     seguro: 0.01,
-    ipca: 0.055,
-    lance: 0.60,
-    lanceMode: 'percentual' as const,
-    parcelaLance: 0,
+    indexador: 'IPCA' as const,
+    indiceAnual: 0.055,
   }
 
   it('saldo devedor inicial correto', () => {
     const r = calcularFinanciamento(params)
-    // 200000 × (1 + 0.01 + 0.01 + 0.01) = 206000
-    expect(r.saldoDevedor).toBeCloseTo(206000, 0)
+    // 200000 × (1 + 0.01 + 0.01) = 204000  (sem taxaAdesao)
+    expect(r.saldoDevedor).toBeCloseTo(204000, 0)
   })
 
   it('parcela inicial positiva', () => {
