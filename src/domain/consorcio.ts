@@ -2,7 +2,7 @@ import type { ConsorcioParams, LinhaAmortizacao, ResultadoSimulacao } from './ty
 import { irr, npv } from './financeiro'
 
 export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
-  const fatorCustas = p.taxaAdm + p.taxaAdesao + p.fundoReserva + p.seguro
+  const fatorCustas = p.taxaAdm + p.taxaAdesao + p.fundoReserva + p.seguro * p.parcelas
   const totalContratado = p.valorCarta * (1 + fatorCustas)
   const valorLance = totalContratado * p.lance
 

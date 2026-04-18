@@ -41,13 +41,14 @@ describe('calcularConsorcio', () => {
 
   it('saldo devedor inicial correto', () => {
     const r = calcularConsorcio(params)
-    // 200000 × (1 + 0.15 + 0 + 0.02 + 0.00038) = 200000 × 1.17038 = 234076
-    expect(r.saldoDevedor).toBeCloseTo(234076, 0)
+    // seguro = 0.00038 × 90 parcelas = 0.0342
+    // 200000 × (1 + 0.15 + 0 + 0.02 + 0.0342) = 200000 × 1.2042 = 240840
+    expect(r.saldoDevedor).toBeCloseTo(240840, 0)
   })
 
   it('parcela inicial = saldo / parcelas', () => {
     const r = calcularConsorcio(params)
-    expect(r.parcelaInicial).toBeCloseTo(234076 / 90, 2)
+    expect(r.parcelaInicial).toBeCloseTo(240840 / 90, 2)
   })
 
   it('total de linhas geradas = parcelas', () => {
