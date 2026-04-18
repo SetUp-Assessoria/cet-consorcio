@@ -10,14 +10,12 @@ export function npv(taxa: number, fluxos: number[]): number {
 }
 
 // IRR: bissecção + Newton-Raphson para fluxos irregulares
-export function irr(fluxos: number[]): number {
+export function irr(fluxos: number[], LO = -0.99, HI = 10): number {
   const npvAt = (r: number) =>
     fluxos.reduce((acc, cf, t) => acc + cf / Math.pow(1 + r, t), 0)
 
-  // Busca um intervalo com troca de sinal em [-0.99, 10]
+  // Busca um intervalo com troca de sinal no range fornecido
   const STEPS = 2000
-  const LO = -0.99
-  const HI = 10
   let lo = NaN
   let hi = NaN
   let prev = npvAt(LO)
