@@ -29,14 +29,11 @@ function CardBlank() {
   return <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-3" />
 }
 
-const multiplo = (v: number) =>
-  v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '×'
-
 export function ResumoCards({ consorcio, financiamento }: Props) {
   const parcelaFinalC = consorcio.linhas[consorcio.linhas.length - 1]?.parcela ?? 0
   const parcelaFinalF = financiamento.linhas[financiamento.linhas.length - 1]?.parcela ?? 0
-  const ratioC = consorcio.creditoLiberado > 0 ? consorcio.totalPago / consorcio.creditoLiberado : 0
-  const ratioF = financiamento.creditoLiberado > 0 ? financiamento.totalPago / financiamento.creditoLiberado : 0
+  const custoC = consorcio.totalPago - consorcio.creditoLiberado
+  const custoF = financiamento.totalPago - financiamento.creditoLiberado
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -44,7 +41,7 @@ export function ResumoCards({ consorcio, financiamento }: Props) {
       <Card label="Parcela Inicial" cVal={consorcio.parcelaInicial} fVal={financiamento.parcelaInicial} format={moeda} />
       <Card label="TIR Anual (CET)" cVal={consorcio.tirAnual} fVal={financiamento.tirAnual} format={pct} />
       <Card label="Crédito Liberado" cVal={consorcio.creditoLiberado} fVal={financiamento.creditoLiberado} format={moeda} />
-      <Card label="Valor pago / crédito" cVal={ratioC} fVal={ratioF} format={multiplo} />
+      <Card label="Valor pago − crédito" cVal={custoC} fVal={custoF} format={moeda} />
       {/* L2 */}
       <Card label="Parcela Final" cVal={parcelaFinalC} fVal={parcelaFinalF} format={moeda} />
       <Card
