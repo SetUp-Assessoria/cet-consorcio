@@ -1,13 +1,16 @@
+export type BaseReajuste = 'totalContratado' | 'valorCarta'
+
 export interface ConsorcioParams {
   valorCarta: number
   parcelas: number
-  taxaAdm: number       // % a.m. ex: 0.0015
-  taxaAdesao: number    // % ex: 0
-  fundoReserva: number  // % a.m. ex: 0.0002
-  seguro: number        // % a.m. ex: 0.00038
-  ipca: number          // % a.a. ex: 0.055
-  lance: number         // % ex: 0
-  parcelaLance: number  // mês em que ocorre o lance
+  taxaAdm: number
+  taxaAdesao: number
+  fundoReserva: number
+  seguro: number
+  ipca: number
+  lance: number
+  parcelaLance: number
+  baseReajuste: BaseReajuste  // define se o reajuste anual incide sobre o total contratado ou só sobre o valor da carta
 }
 
 export interface FinanciamentoParams {

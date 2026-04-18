@@ -36,6 +36,7 @@ describe('calcularConsorcio', () => {
     ipca: 0.055,
     lance: 0,
     parcelaLance: 12,
+    baseReajuste: 'totalContratado' as const,
   }
 
   it('saldo devedor inicial correto', () => {

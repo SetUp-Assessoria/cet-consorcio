@@ -1,4 +1,4 @@
-import type { ConsorcioParams, FinanciamentoParams } from '../domain/types'
+import type { BaseReajuste, ConsorcioParams, FinanciamentoParams } from '../domain/types'
 
 type FieldDef = {
   key: string
@@ -82,6 +82,29 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
               onChange={(v) => onConsorcioChange({ ...consorcioParams, [f.key]: v })}
             />
           ))}
+        </div>
+
+        {/* Seletor de base do reajuste anual */}
+        <div className="mt-3 flex flex-col gap-1">
+          <p className="text-xs font-medium text-slate-500">Base do reajuste anual</p>
+          <div className="flex gap-3">
+            {([
+              { value: 'totalContratado', label: 'Total contratado' },
+              { value: 'valorCarta',      label: 'Valor da carta' },
+            ] as { value: BaseReajuste; label: string }[]).map(({ value, label }) => (
+              <label key={value} className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="baseReajuste"
+                  value={value}
+                  checked={consorcioParams.baseReajuste === value}
+                  onChange={() => onConsorcioChange({ ...consorcioParams, baseReajuste: value })}
+                  className="accent-blue-600"
+                />
+                <span className="text-xs text-slate-700">{label}</span>
+              </label>
+            ))}
+          </div>
         </div>
       </div>
 

@@ -2,36 +2,45 @@ import type { ConsorcioParams, LinhaAmortizacao, ResultadoSimulacao } from './ty
 import { irr, npv } from './financeiro'
 
 export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
-  // 1. Total a ser pago = carta + (taxas × carta)
-  const totalContratado = p.valorCarta * (1 + p.taxaAdm + p.taxaAdesao + p.fundoReserva + p.seguro)
-
-  // 2. Parcela = total / prazo (sem juros — sistema de cotas)
-  const parcelaInicial = totalContratado / p.parcelas
-
-  // 3. Lance sobre o total contratado
+  const fatorCustas = p.taxaAdm + p.taxaAdesao + p.fundoReserva + p.seguro
+  const totalContratado = p.valorCarta * (1 + fatorCustas)
   const valorLance = totalContratado * p.lance
 
-  const linhas: LinhaAmortizacao[] = []
-  let parcela = parcelaInicial
-  let saldo = totalContratado  // saldo devedor: começa no total e diminui com cada pagamento
-  let cartaAjustada = p.valorCarta
-  let totalPago = 0
+  // Divide o total em componente carta e componente custas
+  // Isso permite reajustar só a carta quando baseReajuste = 'valorCarta'
+  let parcelaCarta = p.valorCarta / p.parcelas
+  let parcelaCustas = (p.valorCarta * fatorCustas) / p.parcelas
 
-  // Fluxo IRR: contratante recebe a carta (+) e paga as parcelas (-)
+  // Saldo também é rastreado em duas partes para o mesmo motivo
+  let saldoCarta = p.valorCarta
+  let saldoCustas = p.valorCarta * fatorCustas
+  let cartaAjustada = p.valorCarta
+
+  const linhas: LinhaAmortizacao[] = []
+  let totalPago = 0
   const fluxoIRR: number[] = [p.valorCarta]
 
   for (let mes = 1; mes <= p.parcelas; mes++) {
-    // Reajuste a cada 12 meses a partir do mês 13: saldo e parcela crescem pelo índice
     if (mes > 1 && (mes - 1) % 12 === 0) {
-      saldo = saldo * (1 + p.ipca)
-      parcela = parcela * (1 + p.ipca)
-      cartaAjustada = cartaAjustada * (1 + p.ipca)
+      const f = 1 + p.ipca
+      // Carta sempre reajustada
+      parcelaCarta = parcelaCarta * f
+      saldoCarta = saldoCarta * f
+      cartaAjustada = cartaAjustada * f
+
+      // Custas: reajustadas só se baseReajuste = 'totalContratado'
+      if (p.baseReajuste === 'totalContratado') {
+        parcelaCustas = parcelaCustas * f
+        saldoCustas = saldoCustas * f
+      }
     }
 
+    const parcela = parcelaCarta + parcelaCustas
     const lanceAtual = mes === p.parcelaLance && p.lance > 0 ? valorLance : 0
     const pagamentoMes = parcela + lanceAtual
 
-    saldo -= pagamentoMes
+    saldoCarta -= parcelaCarta
+    saldoCustas -= parcelaCustas
     totalPago += pagamentoMes
     fluxoIRR.push(-pagamentoMes)
 
@@ -39,12 +48,13 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
       mes,
       parcela,
       lance: lanceAtual,
-      saldo: Math.max(0, saldo),
-      saldoAjustado: Math.max(0, saldo),
+      saldo: Math.max(0, saldoCarta + saldoCustas),
+      saldoAjustado: Math.max(0, saldoCarta + saldoCustas),
       cartaAjustada,
     })
   }
 
+  const parcelaInicial = p.valorCarta * (1 + fatorCustas) / p.parcelas
   const tirMensal = irr(fluxoIRR)
   const tirAnual = Math.pow(1 + tirMensal, 12) - 1
   const vplVal = npv(tirMensal, fluxoIRR.slice(1)) + fluxoIRR[0]
