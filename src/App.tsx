@@ -34,6 +34,11 @@ export default function App() {
 
         <ResumoCards consorcio={resultadoConsorcio} financiamento={resultadoFinanciamento} />
 
+        <p className="text-[11px] text-slate-400 -mt-3">
+          ¹ CET c/ custo de espera: acrescenta ao CET do consórcio o custo de oportunidade de aguardar o crédito,
+          estimado pelo mesmo índice de reajuste do contrato (IPCA) — financiamento recebe o crédito em t=0, sem ajuste.
+        </p>
+
         <Graficos
           consorcioLinhas={resultadoConsorcio.linhas}
           financiamentoLinhas={resultadoFinanciamento.linhas}

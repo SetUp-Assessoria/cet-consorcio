@@ -118,6 +118,13 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
   const tirAnual = Math.pow(1 + tirMensal, 12) - 1
   const vplVal = npv(tirMensal, fluxoCET.slice(1)) + fluxoCET[0]
 
+  // CET ajustado: t=0 + custo de espera pelo índice de reajuste do contrato (IPCA)
+  const ipcaMensal = Math.pow(1 + p.ipca, 1 / 12) - 1
+  const custoEspera = creditoLiberado * (Math.pow(1 + ipcaMensal, p.parcelaContemplacao) - 1)
+  const fluxoCETOpp = fluxoCET.map((cf, t) => t === p.parcelaContemplacao ? cf - custoEspera : cf)
+  const tirMensalOpp = irr(fluxoCETOpp)
+  const tirAnualOpp = Math.pow(1 + tirMensalOpp, 12) - 1
+
   return {
     saldoDevedor: totalContratado,
     parcelaInicial,
@@ -125,6 +132,8 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
     creditoLiberado,
     tirMensal,
     tirAnual,
+    tirAnualOpp,
+    custoEspera,
     vpl: vplVal,
     linhas,
   }

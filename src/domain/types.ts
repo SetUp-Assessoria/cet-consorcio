@@ -60,6 +60,8 @@ export interface ResultadoSimulacao {
   creditoLiberado: number
   tirMensal: number
   tirAnual: number
+  tirAnualOpp?: number   // CET t=0 + custo de espera via índice de reajuste do contrato
+  custoEspera?: number   // valor absoluto do custo de oportunidade (R$)
   vpl: number
   linhas: LinhaAmortizacao[]
 }
