@@ -6,11 +6,28 @@ interface Props {
   financiamento: ResultadoSimulacao
 }
 
-function Card({ label, cVal, fVal, format }: { label: string; cVal: number; fVal: number; format: (v: number) => string }) {
+function Hint({ text }: { text: string }) {
+  return (
+    <div className="group relative ml-1 inline-block">
+      <span className="cursor-default select-none text-[10px] text-slate-400 hover:text-slate-600">ℹ</span>
+      <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 w-56 -translate-x-1/2 rounded bg-slate-800 px-2 py-1.5 text-[10px] leading-relaxed text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+        {text}
+        <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+      </div>
+    </div>
+  )
+}
+
+function Card({ label, hint, cVal, fVal, format }: {
+  label: string; hint: string; cVal: number; fVal: number; format: (v: number) => string
+}) {
   const cMenor = cVal < fVal
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-      <p className="mb-2 text-xs font-medium text-slate-500">{label}</p>
+      <div className="mb-2 flex items-center">
+        <p className="text-xs font-medium text-slate-500">{label}</p>
+        <Hint text={hint} />
+      </div>
       <div className="flex justify-between gap-2">
         <div className="text-center">
           <p className="text-[10px] text-blue-600 font-semibold">CONSÓRCIO</p>
@@ -38,19 +55,44 @@ export function ResumoCards({ consorcio, financiamento }: Props) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {/* L1 */}
-      <Card label="Parcela Inicial" cVal={consorcio.parcelaInicial} fVal={financiamento.parcelaInicial} format={moeda} />
-      <Card label="TIR Anual (CET)" cVal={consorcio.tirAnual} fVal={financiamento.tirAnual} format={pct} />
-      <Card label="Crédito Liberado" cVal={consorcio.creditoLiberado} fVal={financiamento.creditoLiberado} format={moeda} />
-      <Card label="Valor pago − crédito" cVal={custoC} fVal={custoF} format={moeda} />
+      <Card
+        label="Parcela Inicial"
+        hint="Valor da primeira mensalidade antes de qualquer reajuste anual."
+        cVal={consorcio.parcelaInicial} fVal={financiamento.parcelaInicial} format={moeda}
+      />
+      <Card
+        label="TIR Anual (CET)"
+        hint="Custo Efetivo Total anualizado. O crédito é trazido a valor presente pelo IPCA (creditoPV = crédito ÷ (1+IPCA)^(k/12)) e posicionado em t=0 para calcular a TIR."
+        cVal={consorcio.tirAnual} fVal={financiamento.tirAnual} format={pct}
+      />
+      <Card
+        label="Crédito Liberado"
+        hint="Valor efetivamente disponibilizado ao contratante após descontos de lance embutido e/ou próprio."
+        cVal={consorcio.creditoLiberado} fVal={financiamento.creditoLiberado} format={moeda}
+      />
+      <Card
+        label="Valor pago − crédito"
+        hint="Custo líquido do contrato: soma de todas as parcelas e lances pagos subtraída do crédito recebido. Representa quanto a mais você pagou além do bem."
+        cVal={custoC} fVal={custoF} format={moeda}
+      />
       {/* L2 */}
-      <Card label="Parcela Final" cVal={parcelaFinalC} fVal={parcelaFinalF} format={moeda} />
+      <Card
+        label="Parcela Final"
+        hint="Valor da última mensalidade após todos os reajustes anuais pelo índice contratual."
+        cVal={parcelaFinalC} fVal={parcelaFinalF} format={moeda}
+      />
       <Card
         label="CET c/ custo de espera¹"
+        hint="CET base composto com a valorização esperada do bem acima do índice: (1 + CET) × (1 + valorização) − 1. Reflete o custo real de aguardar a contemplação enquanto o imóvel se valoriza."
         cVal={consorcio.tirAnualOpp ?? consorcio.tirAnual}
         fVal={financiamento.tirAnual}
         format={pct}
       />
-      <Card label="Total Pago" cVal={consorcio.totalPago} fVal={financiamento.totalPago} format={moeda} />
+      <Card
+        label="Total Pago"
+        hint="Soma de todas as parcelas mensais mais os lances próprios desembolsados ao longo do contrato."
+        cVal={consorcio.totalPago} fVal={financiamento.totalPago} format={moeda}
+      />
       <CardBlank />
     </div>
   )
