@@ -57,8 +57,7 @@ describe('calcularConsorcio', () => {
   it('saldo na última parcela é zero (quitado)', () => {
     const r = calcularConsorcio(params)
     const ultima = r.linhas[r.linhas.length - 1]
-    // saldo = parcela × meses_restantes = parcela × 0 = 0
-    expect(ultima.saldo).toBe(0)
+    expect(ultima.saldo).toBeCloseTo(0, 0)
   })
 
   it('TIR anual positiva (custo efetivo acima de zero)', () => {
