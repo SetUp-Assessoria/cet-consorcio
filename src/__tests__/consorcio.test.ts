@@ -32,6 +32,7 @@ describe('calcularConsorcio', () => {
     fundoReserva: 0.02,
     seguro: 0.00038,
     ipca: 0.055,
+    indiceConsorcio: 'IPCA' as const,
     valorizacaoImovel: 0,
     tipoContemplacao: 'sorteio' as const,
     parcelaContemplacao: 12,
@@ -80,7 +81,7 @@ describe('CET ajustado (tirAnualOpp)', () => {
   const base = {
     valorCarta: 200000, parcelas: 200, taxaAdm: 0.15,
     taxaAdesao: 0, taxaAdesaoMode: 'percentual' as const, fundoReserva: 0.02,
-    seguro: 0.00038, ipca: 0.055, valorizacaoImovel: 0.03,
+    seguro: 0.00038, ipca: 0.055, indiceConsorcio: 'IPCA' as const, valorizacaoImovel: 0.03,
     lance: 0, lanceMode: 'percentual' as const,
     lanceEmbutido: 0, lanceEmbutidoMode: 'percentual' as const,
     redutorParcela: 0, baseReajuste: 'totalContratado' as const,
