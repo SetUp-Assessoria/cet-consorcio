@@ -35,11 +35,9 @@ export default function App() {
         <ResumoCards consorcio={resultadoConsorcio} financiamento={resultadoFinanciamento} />
 
         <p className="text-[11px] text-slate-400 -mt-3">
-          ¹ CET ajustado: o crédito é posicionado no mês real da entrega (t=k) sempre que o fluxo converge
-          (ex.: lance próprio reduz o crédito mas mantém entrada líquida positiva). Quando t=k não converge
-          (sorteio em prazos longos), o crédito é trazido a valor presente descontado pelo índice de reajuste
-          + valorização do bem informada, refletindo o custo real de aguardar. O financiamento recebe o
-          crédito em t=0 e não sofre ajuste.
+          ¹ CET ajustado = CET padrão composto com a valorização anual do bem informada: (1 + CET) × (1 + valorização) − 1.
+          Reflete o custo de oportunidade de aguardar a contemplação enquanto o imóvel aprecia além da correção contratual.
+          O financiamento recebe o crédito em t=0 e não sofre ajuste.
         </p>
 
         <Graficos
