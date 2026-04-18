@@ -112,6 +112,7 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
       saldoAjustado: Math.max(0, saldoCarta + saldoCustas),
       cartaAjustada,
       desconto: desconto > 0 ? desconto : (adicional > 0 ? -adicional : 0),
+      lanceEmbutido: lanceEmb,
     })
   }
 

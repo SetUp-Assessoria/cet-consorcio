@@ -48,6 +48,8 @@ export interface LinhaAmortizacao {
   correcao?: number
   // Consórcio com redutor: desconto aplicado na parcela neste mês
   desconto?: number
+  // Consórcio: lance embutido (sai do crédito, não do bolso)
+  lanceEmbutido?: number
 }
 
 export interface ResultadoSimulacao {

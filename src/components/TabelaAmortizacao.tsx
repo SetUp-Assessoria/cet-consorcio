@@ -13,11 +13,18 @@ export function TabelaAmortizacao({ linhas, label, color }: Props) {
   const isSAC = linhas[0]?.amortizacao !== undefined
 
   const hasDesconto = !isSAC && linhas.some((l) => (l.desconto ?? 0) !== 0)
+  const hasLanceEmbutido = !isSAC && linhas.some((l) => (l.lanceEmbutido ?? 0) > 0)
+
+  const baseCols = ['Mês', 'Parcela']
+  const tailCols = ['Saldo Devedor', 'Valor da Carta']
+  const midCols: string[] = []
+  if (hasDesconto) midCols.push('Desconto')
+  midCols.push('Lance')
+  if (hasLanceEmbutido) midCols.push('Lance Embutido')
+
   const headers = isSAC
     ? ['Mês', 'Amortização', 'Correção', 'Juros', 'Parcela', 'Saldo Devedor']
-    : hasDesconto
-      ? ['Mês', 'Parcela', 'Desconto', 'Lance', 'Saldo Devedor', 'Valor da Carta']
-      : ['Mês', 'Parcela', 'Lance', 'Saldo Devedor', 'Valor da Carta']
+    : [...baseCols, ...midCols, ...tailCols]
 
   return (
     <div className={`rounded-xl border ${borderColor} overflow-hidden`}>
@@ -62,6 +69,11 @@ export function TabelaAmortizacao({ linhas, label, color }: Props) {
                     <td className={`px-2 py-1 text-right ${l.lance > 0 ? 'font-semibold text-purple-600' : 'text-slate-400'}`}>
                       {l.lance > 0 ? moeda(l.lance) : '—'}
                     </td>
+                    {hasLanceEmbutido && (
+                      <td className={`px-2 py-1 text-right ${(l.lanceEmbutido ?? 0) > 0 ? 'font-semibold text-indigo-600' : 'text-slate-400'}`}>
+                        {(l.lanceEmbutido ?? 0) > 0 ? moeda(l.lanceEmbutido ?? 0) : '—'}
+                      </td>
+                    )}
                     <td className="px-2 py-1 text-right">{moeda(Math.max(0, l.saldo))}</td>
                     <td className="px-2 py-1 text-right">{moeda(l.cartaAjustada)}</td>
                   </>
