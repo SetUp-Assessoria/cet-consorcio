@@ -2,49 +2,46 @@ import type { ConsorcioParams, LinhaAmortizacao, ResultadoSimulacao } from './ty
 import { irr, npv } from './financeiro'
 
 export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
-  // taxaAdm, fundoReserva, seguro, taxaAdesao são % totais sobre a carta
-  const custas = p.taxaAdm + p.taxaAdesao + p.fundoReserva + p.seguro
-  const saldoInicial = p.valorCarta * (1 + custas)
-  const valorLance = saldoInicial * p.lance
+  // 1. Total a ser pago = carta + (taxas × carta)
+  const totalContratado = p.valorCarta * (1 + p.taxaAdm + p.taxaAdesao + p.fundoReserva + p.seguro)
+
+  // 2. Parcela = total / prazo (sem juros — sistema de cotas)
+  const parcelaInicial = totalContratado / p.parcelas
+
+  // 3. Lance sobre o total contratado
+  const valorLance = totalContratado * p.lance
 
   const linhas: LinhaAmortizacao[] = []
-
-  // saldo (col F): não cresce com IPCA — referência nominal
-  // saldoAj (col G): cresce com IPCA = referência real (base para TIR)
-  let saldo = saldoInicial
-  let saldoAj = saldoInicial
-  let parcela = saldoInicial / p.parcelas
+  let parcela = parcelaInicial
   let cartaAjustada = p.valorCarta
   let totalPago = 0
 
-  // fluxo IRR: quem contrata recebe a carta (entrada positiva) e paga parcelas (saída negativa)
+  // Fluxo IRR: contratante recebe a carta (+) e paga as parcelas (-)
   const fluxoIRR: number[] = [p.valorCarta]
 
-  const parcelaInicial = parcela
-
   for (let mes = 1; mes <= p.parcelas; mes++) {
-    // Reajuste IPCA a cada 12 meses (primeiro reajuste no mês 13)
+    // Reajuste a cada 12 meses a partir do mês 13 (aniversário da carta)
     if (mes > 1 && (mes - 1) % 12 === 0) {
-      const fator = 1 + p.ipca
-      parcela = parcela * fator
-      saldoAj = saldoAj * fator   // saldo ajustado cresce com IPCA
-      cartaAjustada = cartaAjustada * fator
+      parcela = parcela * (1 + p.ipca)
+      cartaAjustada = cartaAjustada * (1 + p.ipca)
     }
 
     const lanceAtual = mes === p.parcelaLance && p.lance > 0 ? valorLance : 0
+    const pagamentoMes = parcela + lanceAtual
 
-    saldo = saldo - parcela - lanceAtual
-    saldoAj = saldoAj - parcela - lanceAtual
+    totalPago += pagamentoMes
+    fluxoIRR.push(-pagamentoMes)
 
-    totalPago += parcela + lanceAtual
-    fluxoIRR.push(-(parcela + lanceAtual))
+    // Saldo = parcela_atual × meses restantes (= quanto ainda será pago, em valores de hoje)
+    const mesesRestantes = p.parcelas - mes
+    const saldoAtual = parcela * mesesRestantes
 
     linhas.push({
       mes,
       parcela,
       lance: lanceAtual,
-      saldo,
-      saldoAjustado: saldoAj,
+      saldo: saldoAtual,
+      saldoAjustado: saldoAtual,
       cartaAjustada,
     })
   }
@@ -54,7 +51,7 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
   const vplVal = npv(tirMensal, fluxoIRR.slice(1)) + fluxoIRR[0]
 
   return {
-    saldoDevedor: saldoInicial,
+    saldoDevedor: totalContratado,
     parcelaInicial,
     totalPago,
     tirMensal,

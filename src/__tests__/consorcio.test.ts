@@ -54,11 +54,11 @@ describe('calcularConsorcio', () => {
     expect(r.linhas.length).toBe(90)
   })
 
-  it('saldo ajustado final ≈ zero (quitado)', () => {
+  it('saldo na última parcela é zero (quitado)', () => {
     const r = calcularConsorcio(params)
     const ultima = r.linhas[r.linhas.length - 1]
-    // saldoAjustado pode ter resíduo mínimo por arredondamento IPCA
-    expect(Math.abs(ultima.saldoAjustado)).toBeLessThan(50)
+    // saldo = parcela × meses_restantes = parcela × 0 = 0
+    expect(ultima.saldo).toBe(0)
   })
 
   it('TIR anual positiva (custo efetivo acima de zero)', () => {
