@@ -152,7 +152,7 @@ function CampoIndiceConsorcio({
       <div className="flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 focus-within:border-blue-400">
         <input type="number" step={0.001} min={0}
           value={displayVal}
-          onChange={(e) => { const r = parseFloat(e.target.value); if (!isNaN(r)) onChange('Outro', r / 100) }}
+          onChange={(e) => { const r = parseFloat(e.target.value); if (!isNaN(r)) onChange(indice, r / 100) }}
           className="w-full min-w-0 bg-transparent text-sm outline-none" />
         <span className="shrink-0 text-xs text-slate-400">%</span>
       </div>
