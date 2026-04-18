@@ -42,6 +42,8 @@ export function calcularFinanciamento(p: FinanciamentoParams): ResultadoSimulaca
       saldo,
       saldoAjustado: saldo,
       cartaAjustada,
+      amortizacao,
+      juros,
     })
 
     if (saldo <= 0.01) break

@@ -39,6 +39,9 @@ export interface LinhaAmortizacao {
   saldo: number
   saldoAjustado: number
   cartaAjustada: number
+  // SAC breakdown (financiamento only)
+  amortizacao?: number
+  juros?: number
 }
 
 export interface ResultadoSimulacao {
