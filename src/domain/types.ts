@@ -11,6 +11,7 @@ export interface ConsorcioParams {
   fundoReserva: number
   seguro: number
   ipca: number
+  valorizacaoImovel: number      // valorização esperada do imóvel acima do IPCA (a.a.)
   tipoContemplacao: TipoContemplacao
   parcelaContemplacao: number
   lance: number

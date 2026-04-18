@@ -12,6 +12,7 @@ export const DEFAULT_CONSORCIO: ConsorcioParams = {
   fundoReserva: 0.02,
   seguro: 0.00038,
   ipca: 0.055,
+  valorizacaoImovel: 0.03,
   tipoContemplacao: 'sorteio',
   parcelaContemplacao: 12,
   lance: 0,
