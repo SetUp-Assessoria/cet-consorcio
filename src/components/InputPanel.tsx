@@ -233,7 +233,16 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
           <div className="flex flex-wrap gap-1">
             {TIPO_CONTEMPLACAO_OPTIONS.map(({ value, label }) => (
               <button key={value} type="button"
-                onClick={() => onConsorcioChange({ ...consorcioParams, tipoContemplacao: value })}
+                onClick={() => {
+                  const hasEmbutido = value === 'lanceEmbutido' || value === 'lanceEmbutidoMaisPropio'
+                  onConsorcioChange({
+                    ...consorcioParams,
+                    tipoContemplacao: value,
+                    ...(hasEmbutido && consorcioParams.lanceEmbutido < 0.30
+                      ? { lanceEmbutido: 0.30, lanceEmbutidoMode: 'percentual' }
+                      : {}),
+                  })
+                }}
                 className={`px-2 py-1 text-xs rounded border transition-colors ${
                   tipo === value
                     ? 'bg-blue-600 text-white border-blue-600 font-medium'
