@@ -18,7 +18,7 @@ const CONSORCIO_FIELDS: FieldDef[] = [
   { key: 'fundoReserva', label: 'Fundo Reserva (total)', unit: '%', step: 0.001, min: 0, max: 0.1, isPercent: true },
   { key: 'seguro', label: 'Seguro Prestamista', unit: '%', step: 0.00001, min: 0, max: 0.01, isPercent: true },
   { key: 'ipca', label: 'IPCA (a.a.)', unit: '%', step: 0.001, min: 0, max: 0.3, isPercent: true },
-  { key: 'valorizacaoImovel', label: 'Valoriz. imóvel acima IPCA (a.a.)', unit: '%', step: 0.001, min: 0, max: 0.5, isPercent: true },
+  { key: 'valorizacaoImovel', label: 'Valorização do bem acima do índice de reajuste contratual', unit: '%', step: 0.001, min: 0, max: 0.5, isPercent: true },
 ]
 
 const FINANCIAMENTO_FIELDS: FieldDef[] = [
