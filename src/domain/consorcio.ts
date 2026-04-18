@@ -5,7 +5,6 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
   const taxaAdesaoFrac = p.taxaAdesaoMode === 'financeiro' ? p.taxaAdesao / p.valorCarta : p.taxaAdesao
   const fatorCustas = p.taxaAdm + taxaAdesaoFrac + p.fundoReserva + p.seguro * p.parcelas
   const totalContratado = p.valorCarta * (1 + fatorCustas)
-  const valorLance = p.lanceMode === 'financeiro' ? p.lance : totalContratado * p.lance
   const parcelaInicial = totalContratado / p.parcelas
 
   // Saldo rastreado em dois componentes para aplicar reajuste seletivo
@@ -21,7 +20,7 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
   let totalPago = 0
   let creditoLiberado = 0
   // t=0: se há lance, a carta é recebida no mês do lance (não no início)
-  const fluxoIRR: number[] = [valorLance > 0 ? 0 : p.valorCarta]
+  const fluxoIRR: number[] = [p.lance > 0 ? 0 : p.valorCarta]
 
   for (let mes = 1; mes <= p.parcelas; mes++) {
     // Reajuste anual (antes da dedução do mês)
@@ -39,7 +38,14 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
     }
 
     const parcela = parcelaCarta + parcelaCustas
-    const lanceAtual = mes === p.parcelaLance && p.lance > 0 ? valorLance : 0
+
+    // Lance percentual calculado sobre o saldo devedor atual (início do mês)
+    let lanceAtual = 0
+    if (mes === p.parcelaLance && p.lance > 0) {
+      lanceAtual = p.lanceMode === 'financeiro'
+        ? p.lance
+        : (saldoCarta + saldoCustas) * p.lance
+    }
 
     // Abate a parcela do mês
     saldoCarta -= parcelaCarta
