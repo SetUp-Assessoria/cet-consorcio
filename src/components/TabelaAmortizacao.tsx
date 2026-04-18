@@ -12,6 +12,10 @@ export function TabelaAmortizacao({ linhas, label, color }: Props) {
   const labelColor = color === 'blue' ? 'text-blue-700' : 'text-orange-700'
   const isSAC = linhas[0]?.amortizacao !== undefined
 
+  const headers = isSAC
+    ? ['Mês', 'Amortização', 'Correção', 'Juros', 'Parcela', 'Saldo Devedor']
+    : ['Mês', 'Parcela', 'Lance', 'Saldo Devedor', 'Valor da Carta']
+
   return (
     <div className={`rounded-xl border ${borderColor} overflow-hidden`}>
       <p className={`px-3 py-2 text-xs font-semibold uppercase tracking-wide ${labelColor} bg-white border-b ${borderColor}`}>
@@ -21,10 +25,7 @@ export function TabelaAmortizacao({ linhas, label, color }: Props) {
         <table className="w-full text-xs border-collapse">
           <thead className="sticky top-0 bg-slate-100 z-10">
             <tr>
-              {(isSAC
-                ? ['Mês', 'Amortização', 'Juros', 'Parcela', 'Saldo Devedor', 'Valor da Carta']
-                : ['Mês', 'Parcela', 'Lance', 'Saldo Devedor', 'Valor da Carta']
-              ).map((h) => (
+              {headers.map((h) => (
                 <th key={h} className="px-2 py-2 text-right first:text-left font-semibold text-slate-600 border-b border-slate-200">
                   {h}
                 </th>
@@ -38,8 +39,10 @@ export function TabelaAmortizacao({ linhas, label, color }: Props) {
                 {isSAC ? (
                   <>
                     <td className="px-2 py-1 text-right">{moeda(l.amortizacao ?? 0)}</td>
+                    <td className="px-2 py-1 text-right text-amber-600">{moeda(l.correcao ?? 0)}</td>
                     <td className="px-2 py-1 text-right">{moeda(l.juros ?? 0)}</td>
                     <td className="px-2 py-1 text-right font-medium">{moeda(l.parcela)}</td>
+                    <td className="px-2 py-1 text-right">{moeda(Math.max(0, l.saldo))}</td>
                   </>
                 ) : (
                   <>
@@ -47,10 +50,10 @@ export function TabelaAmortizacao({ linhas, label, color }: Props) {
                     <td className={`px-2 py-1 text-right ${l.lance > 0 ? 'font-semibold text-purple-600' : 'text-slate-400'}`}>
                       {l.lance > 0 ? moeda(l.lance) : '—'}
                     </td>
+                    <td className="px-2 py-1 text-right">{moeda(Math.max(0, l.saldo))}</td>
+                    <td className="px-2 py-1 text-right">{moeda(l.cartaAjustada)}</td>
                   </>
                 )}
-                <td className="px-2 py-1 text-right">{moeda(Math.max(0, l.saldo))}</td>
-                <td className="px-2 py-1 text-right">{moeda(l.cartaAjustada)}</td>
               </tr>
             ))}
           </tbody>

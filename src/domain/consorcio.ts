@@ -7,23 +7,24 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
   const totalContratado = p.valorCarta * (1 + fatorCustas)
   const parcelaInicial = totalContratado / p.parcelas
 
-  // Saldo rastreado em dois componentes para aplicar reajuste seletivo
+  const hasLancePropio = p.tipoContemplacao === 'lancePropio' || p.tipoContemplacao === 'lanceEmbutidoMaisPropio'
+  const hasLanceEmbutido = p.tipoContemplacao === 'lanceEmbutido' || p.tipoContemplacao === 'lanceEmbutidoMaisPropio'
+  const temLance = hasLancePropio || hasLanceEmbutido
+
   let saldoCarta = p.valorCarta
   let saldoCustas = p.valorCarta * fatorCustas
   let cartaAjustada = p.valorCarta
 
-  // Parcelas calculadas proporcionalmente ao saldo de cada componente
   let parcelaCarta = saldoCarta / p.parcelas
   let parcelaCustas = saldoCustas / p.parcelas
 
   const linhas: LinhaAmortizacao[] = []
   let totalPago = 0
   let creditoLiberado = 0
-  // t=0: se há lance, a carta é recebida no mês do lance (não no início)
-  const fluxoIRR: number[] = [p.lance > 0 ? 0 : p.valorCarta]
+  // t=0: se há contemplação com lance, crédito entra no mês da contemplação
+  const fluxoIRR: number[] = [temLance ? 0 : p.valorCarta]
 
   for (let mes = 1; mes <= p.parcelas; mes++) {
-    // Reajuste anual (antes da dedução do mês)
     if (mes > 1 && (mes - 1) % 12 === 0) {
       const f = 1 + p.ipca
       saldoCarta = saldoCarta * f
@@ -31,7 +32,6 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
       if (p.baseReajuste === 'totalContratado') {
         saldoCustas = saldoCustas * f
       }
-      // Recalcula parcelas com base no novo saldo e nos meses restantes
       const mesesRestantes = p.parcelas - mes + 1
       parcelaCarta = saldoCarta / mesesRestantes
       parcelaCustas = saldoCustas / mesesRestantes
@@ -39,25 +39,33 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
 
     const parcela = parcelaCarta + parcelaCustas
 
-    // Lance percentual calculado sobre o saldo devedor atual (início do mês)
-    let lanceAtual = 0
-    if (mes === p.parcelaLance && p.lance > 0) {
-      lanceAtual = p.lanceMode === 'financeiro'
+    // Lance próprio: desembolso em dinheiro (entra na coluna Lance)
+    let lancePropio = 0
+    if (hasLancePropio && mes === p.parcelaContemplacao && p.lance > 0) {
+      lancePropio = p.lanceMode === 'financeiro'
         ? p.lance
         : (saldoCarta + saldoCustas) * p.lance
     }
 
-    // Abate a parcela do mês
+    // Lance embutido: usa parte do crédito (NÃO é desembolso; não entra na coluna Lance)
+    let lanceEmb = 0
+    if (hasLanceEmbutido && mes === p.parcelaContemplacao && p.lanceEmbutido > 0) {
+      lanceEmb = p.lanceEmbutidoMode === 'financeiro'
+        ? p.lanceEmbutido
+        : (saldoCarta + saldoCustas) * p.lanceEmbutido
+    }
+
     saldoCarta -= parcelaCarta
     saldoCustas -= parcelaCustas
 
-    // Abate o lance e recalcula as parcelas sobre o novo saldo
-    if (lanceAtual > 0) {
-      creditoLiberado = cartaAjustada - lanceAtual
+    const lanceTotal = lancePropio + lanceEmb
+
+    if (lanceTotal > 0) {
+      creditoLiberado = cartaAjustada - lancePropio - lanceEmb
 
       const propCarta = saldoCarta / (saldoCarta + saldoCustas || 1)
-      saldoCarta -= lanceAtual * propCarta
-      saldoCustas -= lanceAtual * (1 - propCarta)
+      saldoCarta -= lanceTotal * propCarta
+      saldoCustas -= lanceTotal * (1 - propCarta)
 
       const mesesRestantes = p.parcelas - mes
       if (mesesRestantes > 0) {
@@ -66,12 +74,11 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
       }
     }
 
-    totalPago += parcela + lanceAtual
+    totalPago += parcela + lancePropio
 
-    // IRR: no mês do lance, entrada = creditoLiberado (carta − lance); saída = parcela
-    // O lance não entra como saída separada — já está absorvido no crédito líquido
-    if (lanceAtual > 0) {
-      fluxoIRR.push((cartaAjustada - lanceAtual) - parcela)
+    if (temLance && mes === p.parcelaContemplacao) {
+      // Inflow = crédito líquido (carta − lances); outflow = parcela do mês
+      fluxoIRR.push(creditoLiberado - parcela)
     } else {
       fluxoIRR.push(-parcela)
     }
@@ -79,7 +86,7 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
     linhas.push({
       mes,
       parcela,
-      lance: lanceAtual,
+      lance: lancePropio,
       saldo: Math.max(0, saldoCarta + saldoCustas),
       saldoAjustado: Math.max(0, saldoCarta + saldoCustas),
       cartaAjustada,

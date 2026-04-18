@@ -6,7 +6,6 @@ import { pmt, irr, npv } from '../domain/financeiro'
 // --- funções financeiras ---
 describe('financeiro', () => {
   it('pmt: parcela constante Price', () => {
-    // Validação: PMT(0.015, 200, 200000) calculado analiticamente
     const result = pmt(0.015, 200, 200000)
     expect(result).toBeCloseTo(3160.92, 0)
   })
@@ -23,28 +22,27 @@ describe('financeiro', () => {
 })
 
 // --- consórcio ---
-// Parâmetros espelho da planilha (taxas são % total sobre carta, não mensal)
-// taxaAdm=15%, fundoReserva=2%, seguro=0.038% conforme análise
 describe('calcularConsorcio', () => {
   const params = {
     valorCarta: 200000,
     parcelas: 90,
-    taxaAdm: 0.15,      // 15% total
+    taxaAdm: 0.15,
     taxaAdesao: 0,
     taxaAdesaoMode: 'percentual' as const,
-    fundoReserva: 0.02, // 2% total
-    seguro: 0.00038,    // 0.038%
+    fundoReserva: 0.02,
+    seguro: 0.00038,
     ipca: 0.055,
+    tipoContemplacao: 'sorteio' as const,
+    parcelaContemplacao: 12,
     lance: 0,
     lanceMode: 'percentual' as const,
-    parcelaLance: 12,
+    lanceEmbutido: 0,
+    lanceEmbutidoMode: 'percentual' as const,
     baseReajuste: 'totalContratado' as const,
   }
 
   it('saldo devedor inicial correto', () => {
     const r = calcularConsorcio(params)
-    // seguro = 0.00038 × 90 parcelas = 0.0342
-    // 200000 × (1 + 0.15 + 0 + 0.02 + 0.0342) = 200000 × 1.2042 = 240840
     expect(r.saldoDevedor).toBeCloseTo(240840, 0)
   })
 
@@ -64,7 +62,7 @@ describe('calcularConsorcio', () => {
     expect(ultima.saldo).toBeCloseTo(0, 0)
   })
 
-  it('TIR anual positiva (custo efetivo acima de zero)', () => {
+  it('TIR anual positiva', () => {
     const r = calcularConsorcio(params)
     expect(r.tirAnual).toBeGreaterThan(0)
   })
@@ -75,38 +73,39 @@ describe('calcularConsorcio', () => {
   })
 })
 
-// --- financiamento ---
+// --- financiamento SAC TR ---
 describe('calcularFinanciamento', () => {
   const params = {
-    valorCarta: 200000,
-    parcelas: 200,
-    taxaJuros: 0.015,
+    valorCarta: 500000,
+    parcelas: 360,
+    taxaJuros: 0.00910492618016678,
     taxaJurosMode: 'mensal' as const,
     taxaMensal: 0,
-    fundoReserva: 0.01,
-    seguro: 0.01,
-    indexador: 'IPCA' as const,
-    indiceAnual: 0.055,
+    seguro: 0,
+    indexador: 'TR' as const,
+    indiceAnual: Math.pow(1 + 0.0005, 12) - 1,
   }
 
-  it('saldo devedor inicial correto', () => {
+  it('1ª prestação correta (planilha SAC TR)', () => {
     const r = calcularFinanciamento(params)
-    // 200000 × (1 + 0.01 + 0.01) = 204000  (sem taxaAdesao)
-    expect(r.saldoDevedor).toBeCloseTo(204000, 0)
+    // Planilha: 5944.32265496177
+    expect(r.parcelaInicial).toBeCloseTo(5944.32, 0)
   })
 
-  it('parcela inicial positiva', () => {
+  it('amortização mês 1 correta', () => {
     const r = calcularFinanciamento(params)
-    expect(r.parcelaInicial).toBeGreaterThan(0)
+    // amortizacao_nominal × fatorAcum = (500000/360) × 1.0005 = 1389.58
+    expect(r.linhas[0].amortizacao ?? 0).toBeCloseTo(1389.58, 0)
   })
 
-  it('total pago maior que valor da carta', () => {
+  it('saldo final mês 1 correto', () => {
+    const r = calcularFinanciamento(params)
+    // Planilha: 498860.416666667
+    expect(r.linhas[0].saldo).toBeCloseTo(498860, 0)
+  })
+
+  it('total pago maior que valor financiado', () => {
     const r = calcularFinanciamento(params)
     expect(r.totalPago).toBeGreaterThan(params.valorCarta)
-  })
-
-  it('TIR anual coerente (positiva)', () => {
-    const r = calcularFinanciamento(params)
-    expect(r.tirAnual).toBeGreaterThan(0)
   })
 })

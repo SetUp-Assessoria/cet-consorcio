@@ -12,9 +12,12 @@ export const DEFAULT_CONSORCIO: ConsorcioParams = {
   fundoReserva: 0.02,
   seguro: 0.00038,
   ipca: 0.055,
+  tipoContemplacao: 'sorteio',
+  parcelaContemplacao: 12,
   lance: 0,
   lanceMode: 'percentual',
-  parcelaLance: 12,
+  lanceEmbutido: 0,
+  lanceEmbutidoMode: 'percentual',
   baseReajuste: 'totalContratado',
 }
 
@@ -24,10 +27,9 @@ export const DEFAULT_FINANCIAMENTO: FinanciamentoParams = {
   taxaJuros: 0.015,
   taxaJurosMode: 'mensal',
   taxaMensal: 0,
-  fundoReserva: 0.01,
   seguro: 0.01,
-  indexador: 'IPCA',
-  indiceAnual: 0.055,
+  indexador: 'TR',
+  indiceAnual: 0.006,
 }
 
 export function useSimulacao() {

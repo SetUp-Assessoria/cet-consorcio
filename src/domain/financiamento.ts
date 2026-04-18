@@ -2,35 +2,44 @@ import type { FinanciamentoParams, LinhaAmortizacao, ResultadoSimulacao } from '
 import { irr, npv } from './financeiro'
 
 export function calcularFinanciamento(p: FinanciamentoParams): ResultadoSimulacao {
-  // Taxa de correção mensal equivalente ao índice anual (IPCA/INCC/TR)
+  // Taxa mensal do indexador (TR, IPCA ou INCC) — equivalente ao índice anual
   const tc = Math.pow(1 + p.indiceAnual, 1 / 12) - 1
 
-  const custas = p.fundoReserva + p.seguro
-  const saldoInicial = p.valorCarta * (1 + custas)
+  const saldoInicial = p.valorCarta * (1 + p.seguro)
 
-  // SAC: amortização constante sobre o saldo inicial
-  const amortizacao = saldoInicial / p.parcelas
+  // Amortização nominal (SAC): fixa sobre o PV original
+  const amortizacaoNominal = saldoInicial / p.parcelas
 
   const linhas: LinhaAmortizacao[] = []
   let saldo = saldoInicial
   let cartaAjustada = p.valorCarta
+  let fatorAcum = 1       // fator TR/índice acumulado (começa em 1)
   let totalPago = 0
 
   const fluxoIRR: number[] = [p.valorCarta]
 
   for (let mes = 1; mes <= p.parcelas; mes++) {
-    // 1. Corrige saldo e carta pelo índice mensal
-    saldo = saldo * (1 + tc)
-    cartaAjustada = cartaAjustada * (1 + tc)
+    // 1. Acumula o fator do indexador
+    fatorAcum = fatorAcum * (1 + tc)
 
-    // 2. Juros sobre saldo corrigido × taxa mensal
-    const juros = saldo * p.taxaJuros
+    // 2. Corrige o saldo devedor pelo indexador mensal
+    const saldoCorrigido = saldo * (1 + tc)
+    const correcao = saldoCorrigido - saldo
 
-    // 3. Parcela = amortização constante + juros + tarifa mensal fixa
+    // 3. Amortização corrigida = amortização nominal × fator acumulado (cresce com o índice)
+    const amortizacao = amortizacaoNominal * fatorAcum
+
+    // 4. Juros sobre saldo corrigido
+    const juros = saldoCorrigido * p.taxaJuros
+
+    // 5. Prestação = amortização corrigida + juros + tarifa mensal fixa
     const parcela = amortizacao + juros + p.taxaMensal
 
-    // 4. Abate a amortização do saldo
-    saldo = Math.max(0, saldo - amortizacao)
+    // 6. Novo saldo = SD corrigido − amortização corrigida
+    saldo = Math.max(0, saldoCorrigido - amortizacao)
+
+    // 7. Atualiza carta pelo mesmo indexador
+    cartaAjustada = cartaAjustada * (1 + tc)
 
     totalPago += parcela
     fluxoIRR.push(-parcela)
@@ -44,6 +53,7 @@ export function calcularFinanciamento(p: FinanciamentoParams): ResultadoSimulaca
       cartaAjustada,
       amortizacao,
       juros,
+      correcao,
     })
 
     if (saldo <= 0.01) break

@@ -1,19 +1,22 @@
 export type BaseReajuste = 'totalContratado' | 'valorCarta'
-
 export type LanceMode = 'percentual' | 'financeiro'
+export type TipoContemplacao = 'sorteio' | 'lancePropio' | 'lanceEmbutido' | 'lanceEmbutidoMaisPropio'
 
 export interface ConsorcioParams {
   valorCarta: number
   parcelas: number
   taxaAdm: number
-  taxaAdesao: number       // fração (0–1) se percentual; R$ absoluto se financeiro
+  taxaAdesao: number
   taxaAdesaoMode: LanceMode
   fundoReserva: number
   seguro: number
   ipca: number
-  lance: number            // fração (0–1) se percentual; R$ absoluto se financeiro
+  tipoContemplacao: TipoContemplacao
+  parcelaContemplacao: number
+  lance: number
   lanceMode: LanceMode
-  parcelaLance: number
+  lanceEmbutido: number
+  lanceEmbutidoMode: LanceMode
   baseReajuste: BaseReajuste
 }
 
@@ -23,13 +26,12 @@ export type Indexador = 'IPCA' | 'INCC' | 'TR'
 export interface FinanciamentoParams {
   valorCarta: number
   parcelas: number
-  taxaJuros: number         // sempre % a.m. (domínio usa esta)
+  taxaJuros: number
   taxaJurosMode: TaxaJurosMode
-  taxaMensal: number        // tarifa mensal fixa em R$
-  fundoReserva: number      // % ex: 0.01
-  seguro: number            // % ex: 0.01
+  taxaMensal: number
+  seguro: number
   indexador: Indexador
-  indiceAnual: number       // taxa a.a. do indexador escolhido
+  indiceAnual: number
 }
 
 export interface LinhaAmortizacao {
@@ -42,13 +44,14 @@ export interface LinhaAmortizacao {
   // SAC breakdown (financiamento only)
   amortizacao?: number
   juros?: number
+  correcao?: number
 }
 
 export interface ResultadoSimulacao {
   saldoDevedor: number
   parcelaInicial: number
   totalPago: number
-  creditoLiberado: number  // valor da carta no mês do lance subtraído o lance
+  creditoLiberado: number
   tirMensal: number
   tirAnual: number
   vpl: number
