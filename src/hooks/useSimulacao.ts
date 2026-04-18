@@ -5,7 +5,7 @@ import { calcularFinanciamento } from '../domain/financiamento'
 
 export const DEFAULT_CONSORCIO: ConsorcioParams = {
   valorCarta: 200000,
-  parcelas: 90,
+  parcelas: 200,
   taxaAdm: 0.15,
   taxaAdesao: 0,
   taxaAdesaoMode: 'percentual',
@@ -24,12 +24,12 @@ export const DEFAULT_CONSORCIO: ConsorcioParams = {
 
 export const DEFAULT_FINANCIAMENTO: FinanciamentoParams = {
   valorCarta: 200000,
-  valorEntrada: 0,
+  valorEntrada: 40000,
   parcelas: 200,
-  taxaJuros: 0.015,
-  taxaJurosMode: 'mensal',
-  taxaMensal: 0,
-  seguro: 0.01,
+  taxaJuros: Math.pow(1.11, 1 / 12) - 1,
+  taxaJurosMode: 'anual',
+  taxaMensal: 25,
+  seguro: 0,
   indexador: 'TR',
   indiceAnual: 0.006,
 }

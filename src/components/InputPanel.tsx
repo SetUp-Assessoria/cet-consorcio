@@ -303,7 +303,13 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
           {FINANCIAMENTO_FIELDS.map((f) => (
             <Campo key={f.key} field={f}
               value={(financiamentoParams as unknown as Record<string, number>)[f.key]}
-              onChange={(v) => onFinanciamentoChange({ ...financiamentoParams, [f.key]: v })} />
+              onChange={(v) => {
+                if (f.key === 'valorCarta') {
+                  onFinanciamentoChange({ ...financiamentoParams, valorCarta: v, valorEntrada: Math.round(v * 0.20) })
+                } else {
+                  onFinanciamentoChange({ ...financiamentoParams, [f.key]: v })
+                }
+              }} />
           ))}
           <CampoCalc
             label="Valor Financiado"
