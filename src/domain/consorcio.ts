@@ -24,8 +24,8 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
   const linhas: LinhaAmortizacao[] = []
   let totalPago = 0
   let creditoLiberado = 0
-  // t=0: se há contemplação com lance, crédito entra no mês da contemplação
-  const fluxoIRR: number[] = [temLance ? 0 : p.valorCarta]
+  // t=0: crédito sempre entregue no mês da contemplação (sorteio ou lance)
+  const fluxoIRR: number[] = [0]
 
   for (let mes = 1; mes <= p.parcelas; mes++) {
     if (mes > 1 && (mes - 1) % 12 === 0) {
@@ -95,10 +95,15 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
       }
     }
 
+    // Para sorteio: crédito = cartaAjustada (sem abatimentos) no mês da contemplação
+    if (!temLance && mes === p.parcelaContemplacao) {
+      creditoLiberado = cartaAjustada
+    }
+
     totalPago += parcela + lancePropio
 
-    if (temLance && mes === p.parcelaContemplacao) {
-      // Inflow = crédito líquido (carta − lances); outflow = parcela do mês
+    if (mes === p.parcelaContemplacao) {
+      // Inflow = crédito liberado (carta ajustada para sorteio; carta − lances para lance tipos)
       fluxoIRR.push(creditoLiberado - parcela)
     } else {
       fluxoIRR.push(-parcela)
