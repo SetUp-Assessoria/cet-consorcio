@@ -25,16 +25,25 @@ function Card({ label, cVal, fVal, format }: { label: string; cVal: number; fVal
   )
 }
 
+function CardBlank() {
+  return <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-3" />
+}
+
 export function ResumoCards({ consorcio, financiamento }: Props) {
+  const parcelaFinalC = consorcio.linhas[consorcio.linhas.length - 1]?.parcela ?? 0
+  const parcelaFinalF = financiamento.linhas[financiamento.linhas.length - 1]?.parcela ?? 0
+
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {/* L1 */}
       <Card label="Parcela Inicial" cVal={consorcio.parcelaInicial} fVal={financiamento.parcelaInicial} format={moeda} />
-      <Card label="Total Pago" cVal={consorcio.totalPago} fVal={financiamento.totalPago} format={moeda} />
+      <CardBlank />
       <Card label="Crédito Liberado" cVal={consorcio.creditoLiberado} fVal={financiamento.creditoLiberado} format={moeda} />
-      <Card label="Saldo Inicial" cVal={consorcio.saldoDevedor} fVal={financiamento.saldoDevedor} format={moeda} />
-      <Card label="TIR Mensal" cVal={consorcio.tirMensal} fVal={financiamento.tirMensal} format={pct} />
-      <Card label="VPL" cVal={consorcio.vpl} fVal={financiamento.vpl} format={moeda} />
       <Card label="TIR Anual (CET)" cVal={consorcio.tirAnual} fVal={financiamento.tirAnual} format={pct} />
+      {/* L2 */}
+      <Card label="Parcela Final" cVal={parcelaFinalC} fVal={parcelaFinalF} format={moeda} />
+      <CardBlank />
+      <Card label="Total Pago" cVal={consorcio.totalPago} fVal={financiamento.totalPago} format={moeda} />
       <Card
         label="CET c/ custo de espera¹"
         cVal={consorcio.tirAnualOpp ?? consorcio.tirAnual}
