@@ -42,6 +42,7 @@ export interface ResultadoSimulacao {
   saldoDevedor: number
   parcelaInicial: number
   totalPago: number
+  creditoLiberado: number  // valor da carta no mês do lance subtraído o lance
   tirMensal: number
   tirAnual: number
   vpl: number

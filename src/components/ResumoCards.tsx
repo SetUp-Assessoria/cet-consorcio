@@ -30,6 +30,7 @@ export function ResumoCards({ consorcio, financiamento }: Props) {
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       <Card label="Parcela Inicial" cVal={consorcio.parcelaInicial} fVal={financiamento.parcelaInicial} format={moeda} />
       <Card label="Total Pago" cVal={consorcio.totalPago} fVal={financiamento.totalPago} format={moeda} />
+      <Card label="Crédito Liberado" cVal={consorcio.creditoLiberado} fVal={financiamento.creditoLiberado} format={moeda} />
       <Card label="TIR Anual (CET)" cVal={consorcio.tirAnual} fVal={financiamento.tirAnual} format={pct} />
       <Card label="Saldo Inicial" cVal={consorcio.saldoDevedor} fVal={financiamento.saldoDevedor} format={moeda} />
     </div>

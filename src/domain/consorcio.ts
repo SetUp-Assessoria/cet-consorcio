@@ -18,7 +18,9 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
 
   const linhas: LinhaAmortizacao[] = []
   let totalPago = 0
-  const fluxoIRR: number[] = [p.valorCarta]
+  let creditoLiberado = 0
+  // t=0: se há lance, a carta é recebida no mês do lance (não no início)
+  const fluxoIRR: number[] = [valorLance > 0 ? 0 : p.valorCarta]
 
   for (let mes = 1; mes <= p.parcelas; mes++) {
     // Reajuste anual (antes da dedução do mês)
@@ -44,6 +46,8 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
 
     // Abate o lance e recalcula as parcelas sobre o novo saldo
     if (lanceAtual > 0) {
+      creditoLiberado = cartaAjustada - lanceAtual
+
       const propCarta = saldoCarta / (saldoCarta + saldoCustas || 1)
       saldoCarta -= lanceAtual * propCarta
       saldoCustas -= lanceAtual * (1 - propCarta)
@@ -56,7 +60,13 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
     }
 
     totalPago += parcela + lanceAtual
-    fluxoIRR.push(-(parcela + lanceAtual))
+
+    // IRR: no mês do lance recebe a carta (deduzida do lance) além da saída normal
+    if (lanceAtual > 0) {
+      fluxoIRR.push((cartaAjustada - lanceAtual) - parcela - lanceAtual)
+    } else {
+      fluxoIRR.push(-parcela)
+    }
 
     linhas.push({
       mes,
@@ -76,6 +86,7 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
     saldoDevedor: totalContratado,
     parcelaInicial,
     totalPago,
+    creditoLiberado,
     tirMensal,
     tirAnual,
     vpl: vplVal,

@@ -59,6 +59,7 @@ export function calcularFinanciamento(p: FinanciamentoParams): ResultadoSimulaca
     saldoDevedor: saldoInicial,
     parcelaInicial,
     totalPago,
+    creditoLiberado: saldoAposLance,
     tirMensal,
     tirAnual,
     vpl: vplVal,
