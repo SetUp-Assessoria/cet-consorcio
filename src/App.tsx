@@ -35,8 +35,9 @@ export default function App() {
         <ResumoCards consorcio={resultadoConsorcio} financiamento={resultadoFinanciamento} />
 
         <p className="text-[11px] text-slate-400 -mt-3">
-          ¹ CET c/ custo de espera: acrescenta ao CET do consórcio o custo de oportunidade de aguardar o crédito,
-          estimado pelo mesmo índice de reajuste do contrato (IPCA) — financiamento recebe o crédito em t=0, sem ajuste.
+          ¹ CET ajustado: para contemplações até o mês 47, o crédito é posicionado no mês real da entrega (t=k),
+          refletindo o custo de aguardar. A partir do mês 48, usa o método padrão t=0 (matematicamente mais estável
+          para prazos longos). O financiamento recebe o crédito em t=0, sem ajuste.
         </p>
 
         <Graficos
