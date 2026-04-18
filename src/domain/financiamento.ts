@@ -5,18 +5,19 @@ export function calcularFinanciamento(p: FinanciamentoParams): ResultadoSimulaca
   // Taxa mensal do indexador (TR, IPCA ou INCC) — equivalente ao índice anual
   const tc = Math.pow(1 + p.indiceAnual, 1 / 12) - 1
 
-  const saldoInicial = p.valorCarta * (1 + p.seguro)
+  const valorFinanciado = Math.max(0, p.valorCarta - p.valorEntrada)
+  const saldoInicial = valorFinanciado * (1 + p.seguro)
 
   // Amortização nominal (SAC): fixa sobre o PV original
   const amortizacaoNominal = saldoInicial / p.parcelas
 
   const linhas: LinhaAmortizacao[] = []
   let saldo = saldoInicial
-  let cartaAjustada = p.valorCarta
+  let cartaAjustada = valorFinanciado
   let fatorAcum = 1       // fator TR/índice acumulado (começa em 1)
   let totalPago = 0
 
-  const fluxoIRR: number[] = [p.valorCarta]
+  const fluxoIRR: number[] = [valorFinanciado]
 
   for (let mes = 1; mes <= p.parcelas; mes++) {
     // 1. Acumula o fator do indexador
@@ -69,7 +70,7 @@ export function calcularFinanciamento(p: FinanciamentoParams): ResultadoSimulaca
     saldoDevedor: saldoInicial,
     parcelaInicial,
     totalPago,
-    creditoLiberado: p.valorCarta,
+    creditoLiberado: valorFinanciado,
     tirMensal,
     tirAnual,
     vpl: vplVal,

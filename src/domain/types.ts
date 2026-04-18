@@ -25,7 +25,8 @@ export type TaxaJurosMode = 'mensal' | 'anual'
 export type Indexador = 'IPCA' | 'INCC' | 'TR'
 
 export interface FinanciamentoParams {
-  valorCarta: number
+  valorCarta: number            // valor do bem
+  valorEntrada: number          // entrada (não financiada)
   parcelas: number
   taxaJuros: number
   taxaJurosMode: TaxaJurosMode

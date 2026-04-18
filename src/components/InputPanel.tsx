@@ -22,6 +22,7 @@ const CONSORCIO_FIELDS: FieldDef[] = [
 
 const FINANCIAMENTO_FIELDS: FieldDef[] = [
   { key: 'valorCarta', label: 'Valor do Bem', unit: 'R$', step: 1000, min: 1000, max: 10000000 },
+  { key: 'valorEntrada', label: 'Valor de Entrada', unit: 'R$', step: 1000, min: 0, max: 10000000 },
   { key: 'parcelas', label: 'Nº Parcelas', unit: 'meses', step: 1, min: 12, max: 360 },
   { key: 'taxaMensal', label: 'Tarifa Mensal', unit: 'R$', step: 10, min: 0, max: 10000 },
   { key: 'seguro', label: 'Seguro (% do bem)', unit: '%', step: 0.001, min: 0, max: 0.1, isPercent: true },
@@ -97,6 +98,18 @@ function CampoToggle({
           onChange={(e) => { const r = parseFloat(e.target.value); if (!isNaN(r)) onChange(isPercent ? r / 100 : r) }}
           className="w-full min-w-0 bg-transparent text-sm outline-none" />
         <span className="shrink-0 text-xs text-slate-400">{isPercent ? '%' : 'R$'}</span>
+      </div>
+    </div>
+  )
+}
+
+function CampoCalc({ label, value, unit, accentClass = 'text-slate-700' }: { label: string; value: number; unit: string; accentClass?: string }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <label className="text-xs font-medium text-slate-500">{label}</label>
+      <div className="flex items-center gap-1 rounded border border-slate-200 bg-slate-50 px-2 py-1">
+        <span className={`w-full min-w-0 text-sm font-medium ${accentClass}`}>{fmtBR(value, 0)}</span>
+        <span className="shrink-0 text-xs text-slate-400">{unit}</span>
       </div>
     </div>
   )
@@ -292,6 +305,11 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
               value={(financiamentoParams as unknown as Record<string, number>)[f.key]}
               onChange={(v) => onFinanciamentoChange({ ...financiamentoParams, [f.key]: v })} />
           ))}
+          <CampoCalc
+            label="Valor Financiado"
+            value={Math.max(0, financiamentoParams.valorCarta - financiamentoParams.valorEntrada)}
+            unit="R$"
+            accentClass="text-orange-700" />
           <CampoTaxaJuros
             taxaJuros={financiamentoParams.taxaJuros}
             taxaJurosMode={financiamentoParams.taxaJurosMode}

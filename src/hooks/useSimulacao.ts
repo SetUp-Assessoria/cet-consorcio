@@ -24,6 +24,7 @@ export const DEFAULT_CONSORCIO: ConsorcioParams = {
 
 export const DEFAULT_FINANCIAMENTO: FinanciamentoParams = {
   valorCarta: 200000,
+  valorEntrada: 0,
   parcelas: 200,
   taxaJuros: 0.015,
   taxaJurosMode: 'mensal',

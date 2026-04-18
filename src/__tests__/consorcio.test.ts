@@ -78,6 +78,7 @@ describe('calcularConsorcio', () => {
 describe('calcularFinanciamento', () => {
   const params = {
     valorCarta: 500000,
+    valorEntrada: 0,
     parcelas: 360,
     taxaJuros: 0.00910492618016678,
     taxaJurosMode: 'mensal' as const,
