@@ -102,6 +102,39 @@ function CampoToggle({
   )
 }
 
+function CampoIndexador({
+  indexador, indiceAnual, onChange,
+}: {
+  indexador: Indexador; indiceAnual: number
+  onChange: (indexador: Indexador, indiceAnual: number) => void
+}) {
+  const displayVal = +(indiceAnual * 100).toFixed(4)
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-medium text-slate-500">Indexador</label>
+        <div className="flex rounded border border-orange-200 overflow-hidden text-xs">
+          {(['IPCA', 'INCC', 'TR'] as Indexador[]).map((idx) => (
+            <button key={idx} type="button"
+              onClick={() => onChange(idx, indiceAnual)}
+              className={`px-1.5 py-0.5 transition-colors ${indexador === idx ? 'bg-orange-500 text-white font-medium' : 'bg-white text-slate-500 hover:bg-slate-50'}`}>
+              {idx}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 focus-within:border-blue-400">
+        <input type="number" step={0.001} min={0}
+          value={displayVal}
+          onChange={(e) => { const r = parseFloat(e.target.value); if (!isNaN(r)) onChange(indexador, r / 100) }}
+          className="w-full min-w-0 bg-transparent text-sm outline-none" />
+        <span className="shrink-0 text-xs text-slate-400">%</span>
+      </div>
+    </div>
+  )
+}
+
 function CampoTaxaJuros({
   taxaJuros, taxaJurosMode, onChange,
 }: {
@@ -261,26 +294,11 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
             onChange={(taxa, mode) => onFinanciamentoChange({ ...financiamentoParams, taxaJuros: taxa, taxaJurosMode: mode })} />
         </div>
 
-        {/* Indexador de reajuste */}
-        <div className="mt-3 flex flex-col gap-1">
-          <p className="text-xs font-medium text-slate-500">Indexador de reajuste</p>
-          <div className="flex gap-3">
-            {(['IPCA', 'INCC', 'TR'] as Indexador[]).map((idx) => (
-              <label key={idx} className="flex items-center gap-1.5 cursor-pointer">
-                <input type="radio" name="indexador" value={idx}
-                  checked={financiamentoParams.indexador === idx}
-                  onChange={() => onFinanciamentoChange({ ...financiamentoParams, indexador: idx })}
-                  className="accent-orange-500" />
-                <span className="text-xs text-slate-700">{idx}</span>
-              </label>
-            ))}
-          </div>
-          <div className="mt-1">
-            <Campo
-              field={{ key: 'indiceAnual', label: 'Índice de Reajuste (a.a.)', unit: '%', step: 0.001, min: 0, max: 0.5, isPercent: true }}
-              value={financiamentoParams.indiceAnual}
-              onChange={(v) => onFinanciamentoChange({ ...financiamentoParams, indiceAnual: v })} />
-          </div>
+        <div className="mt-2">
+          <CampoIndexador
+            indexador={financiamentoParams.indexador}
+            indiceAnual={financiamentoParams.indiceAnual}
+            onChange={(idx, val) => onFinanciamentoChange({ ...financiamentoParams, indexador: idx, indiceAnual: val })} />
         </div>
       </div>
     </div>
