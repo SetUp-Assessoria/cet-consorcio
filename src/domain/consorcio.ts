@@ -112,19 +112,18 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
     })
   }
 
-  // CET: crédito em t=0, saídas = parcelas + lance próprio (padrão BACEN)
+  // CET padrão: crédito cheio em t=0 — usado para VPL e referência interna
   const fluxoCET = [creditoLiberado, ...linhas.map(l => -(l.parcela + l.lance))]
   const tirMensal = irr(fluxoCET)
-  const tirAnual = Math.pow(1 + tirMensal, 12) - 1
   const vplVal = npv(tirMensal, fluxoCET.slice(1)) + fluxoCET[0]
 
-  // CET ajustado: crédito efetivamente liberado trazido a valor presente pelo IPCA,
-  // equivalente ao PV(taxa_mensal, k, , crédito) da planilha.
-  // creditoPV = crédito ÷ (1 + IPCA)^(k/12) — sempre em t=0, sem ambiguidade de sinal.
-  // Composto com a valorização do bem informada: (1 + CET_PV) × (1 + valorização) − 1.
+  // CET ajustado: crédito trazido a valor presente pelo IPCA — creditoPV = crédito ÷ (1 + IPCA)^(k/12)
+  // Equivalente ao PV(taxa_mensal, k, , crédito) da planilha (ex: k=36 → 17,62%).
+  // tirAnual expõe este valor; tirAnualOpp o compõe com a valorização do bem.
   const creditoPV = creditoLiberado / Math.pow(1 + p.ipca, p.parcelaContemplacao / 12)
   const fluxoPV = [creditoPV, ...linhas.map(l => -(l.parcela + l.lance))]
   const cetPV = Math.pow(1 + irr(fluxoPV), 12) - 1
+  const tirAnual = cetPV
   const tirAnualOpp = (1 + cetPV) * (1 + p.valorizacaoImovel) - 1
 
   return {
