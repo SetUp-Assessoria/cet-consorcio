@@ -24,8 +24,6 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
   const linhas: LinhaAmortizacao[] = []
   let totalPago = 0
   let creditoLiberado = 0
-  // t=0: crédito sempre entregue no mês da contemplação (sorteio ou lance)
-  const fluxoIRR: number[] = [0]
 
   for (let mes = 1; mes <= p.parcelas; mes++) {
     if (mes > 1 && (mes - 1) % 12 === 0) {
@@ -102,13 +100,6 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
 
     totalPago += parcela + lancePropio
 
-    if (mes === p.parcelaContemplacao) {
-      // Inflow = crédito liberado (carta ajustada para sorteio; carta − lances para lance tipos)
-      fluxoIRR.push(creditoLiberado - parcela)
-    } else {
-      fluxoIRR.push(-parcela)
-    }
-
     linhas.push({
       mes,
       parcela,
@@ -121,9 +112,11 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
     })
   }
 
-  const tirMensal = irr(fluxoIRR)
+  // CET: crédito em t=0, saídas = parcelas + lance próprio (padrão BACEN)
+  const fluxoCET = [creditoLiberado, ...linhas.map(l => -(l.parcela + l.lance))]
+  const tirMensal = irr(fluxoCET)
   const tirAnual = Math.pow(1 + tirMensal, 12) - 1
-  const vplVal = npv(tirMensal, fluxoIRR.slice(1)) + fluxoIRR[0]
+  const vplVal = npv(tirMensal, fluxoCET.slice(1)) + fluxoCET[0]
 
   return {
     saldoDevedor: totalContratado,
