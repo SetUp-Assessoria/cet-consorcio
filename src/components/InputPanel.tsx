@@ -357,34 +357,46 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
       {/* Financiamento */}
       <div className="rounded-xl border border-orange-100 bg-orange-50 p-4">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-orange-700">Financiamento Imobiliário</h2>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {FINANCIAMENTO_FIELDS.map((f) => (
-            <Campo key={f.key} field={f}
-              value={(financiamentoParams as unknown as Record<string, number>)[f.key]}
-              onChange={(v) => {
-                if (f.key === 'valorCarta') {
-                  onFinanciamentoChange({ ...financiamentoParams, valorCarta: v, valorEntrada: Math.round(v * 0.20) })
-                } else {
-                  onFinanciamentoChange({ ...financiamentoParams, [f.key]: v })
-                }
-              }} />
-          ))}
-          <CampoCalc
-            label="Valor Financiado"
-            value={Math.max(0, financiamentoParams.valorCarta - financiamentoParams.valorEntrada)}
-            unit="R$"
-            accentClass="text-orange-700" />
-          <CampoTaxaJuros
-            taxaJuros={financiamentoParams.taxaJuros}
-            taxaJurosMode={financiamentoParams.taxaJurosMode}
-            onChange={(taxa, mode) => onFinanciamentoChange({ ...financiamentoParams, taxaJuros: taxa, taxaJurosMode: mode })} />
-        </div>
-
-        <div className="mt-2">
-          <CampoIndexador
-            indexador={financiamentoParams.indexador}
-            indiceAnual={financiamentoParams.indiceAnual}
-            onChange={(idx, val) => onFinanciamentoChange({ ...financiamentoParams, indexador: idx, indiceAnual: val })} />
+        <div className="flex gap-2">
+          {/* Coluna esquerda: valores do bem */}
+          <div className="flex flex-1 flex-col gap-2">
+            <Campo
+              field={{ key: 'valorCarta', label: 'Valor do Bem', unit: 'R$', step: 1000, min: 1000, max: 10000000 }}
+              value={financiamentoParams.valorCarta}
+              onChange={(v) => onFinanciamentoChange({ ...financiamentoParams, valorCarta: v, valorEntrada: Math.round(v * 0.20) })} />
+            <Campo
+              field={{ key: 'valorEntrada', label: 'Valor de Entrada', unit: 'R$', step: 1000, min: 0, max: 10000000 }}
+              value={financiamentoParams.valorEntrada}
+              onChange={(v) => onFinanciamentoChange({ ...financiamentoParams, valorEntrada: v })} />
+            <CampoCalc
+              label="Valor Financiado"
+              value={Math.max(0, financiamentoParams.valorCarta - financiamentoParams.valorEntrada)}
+              unit="R$"
+              accentClass="text-orange-700" />
+          </div>
+          {/* Coluna direita: condições do contrato */}
+          <div className="flex flex-1 flex-col gap-2">
+            <Campo
+              field={{ key: 'parcelas', label: 'Nº Parcelas', unit: 'meses', step: 1, min: 12, max: 360 }}
+              value={financiamentoParams.parcelas}
+              onChange={(v) => onFinanciamentoChange({ ...financiamentoParams, parcelas: v })} />
+            <Campo
+              field={{ key: 'taxaMensal', label: 'Tarifa Mensal', unit: 'R$', step: 10, min: 0, max: 10000 }}
+              value={financiamentoParams.taxaMensal}
+              onChange={(v) => onFinanciamentoChange({ ...financiamentoParams, taxaMensal: v })} />
+            <Campo
+              field={{ key: 'seguro', label: 'Seguro (% do bem)', unit: '%', step: 0.001, min: 0, max: 0.1, isPercent: true }}
+              value={financiamentoParams.seguro}
+              onChange={(v) => onFinanciamentoChange({ ...financiamentoParams, seguro: v })} />
+            <CampoTaxaJuros
+              taxaJuros={financiamentoParams.taxaJuros}
+              taxaJurosMode={financiamentoParams.taxaJurosMode}
+              onChange={(taxa, mode) => onFinanciamentoChange({ ...financiamentoParams, taxaJuros: taxa, taxaJurosMode: mode })} />
+            <CampoIndexador
+              indexador={financiamentoParams.indexador}
+              indiceAnual={financiamentoParams.indiceAnual}
+              onChange={(idx, val) => onFinanciamentoChange({ ...financiamentoParams, indexador: idx, indiceAnual: val })} />
+          </div>
         </div>
       </div>
     </div>
