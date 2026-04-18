@@ -138,7 +138,7 @@ function CampoIndiceConsorcio({
   const displayVal = +(ipca * 100).toFixed(4)
 
   return (
-    <div className="flex flex-col gap-0.5 sm:col-span-2">
+    <div className="flex flex-col gap-0.5">
       <label className="text-xs font-medium text-slate-500">Índice de Reajuste</label>
       <div className="flex flex-wrap gap-1 mb-1">
         {(['IPCA', 'INCC', 'ValorBem', 'Outro'] as IndiceConsorcio[]).map((idx) => (
