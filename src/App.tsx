@@ -4,6 +4,7 @@ import { ResumoCards } from './components/ResumoCards'
 import { TabelaAmortizacao } from './components/TabelaAmortizacao'
 import { Graficos } from './components/Graficos'
 import { BotoesExport } from './components/BotoesExport'
+import { DashboardDecisao } from './components/DashboardDecisao'
 
 export default function App() {
   const {
@@ -33,6 +34,12 @@ export default function App() {
         />
 
         <ResumoCards consorcio={resultadoConsorcio} financiamento={resultadoFinanciamento} />
+
+        <DashboardDecisao
+          consorcio={resultadoConsorcio}
+          financiamento={resultadoFinanciamento}
+          consorcioParams={consorcioParams}
+        />
 
         <p className="text-[11px] text-slate-400 -mt-3">
           ¹ <strong>TIR Anual (CET)</strong>: custo efetivo anualizado — o crédito liberado é trazido a valor presente
