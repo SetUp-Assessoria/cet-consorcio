@@ -35,10 +35,12 @@ export default function App() {
         <ResumoCards consorcio={resultadoConsorcio} financiamento={resultadoFinanciamento} />
 
         <p className="text-[11px] text-slate-400 -mt-3">
-          ¹ CET ajustado: o crédito efetivamente liberado é trazido a valor presente pelo IPCA —
-          creditoPV = crédito ÷ (1 + IPCA)^(k/12) — e posicionado em t=0. O CET resultante é então
-          composto com a valorização do bem: (1 + CET) × (1 + valorização) − 1. Reflete o custo real
-          de aguardar a contemplação. O financiamento recebe o crédito em t=0 e não sofre ajuste.
+          ¹ <strong>TIR Anual (CET)</strong>: custo efetivo anualizado — o crédito liberado é trazido a valor presente
+          pelo índice de reajuste contratual: creditoPV = crédito ÷ (1 + IPCA)^(k/12), posicionado em t=0.
+          &nbsp;<strong>CET c/ custo de espera</strong>: compõe o CET base com a valorização esperada do bem acima
+          do índice contratual — (1 + CET) × (1 + valorização) − 1 — refletindo o custo real de aguardar
+          a contemplação enquanto o imóvel se valoriza. O financiamento recebe o crédito integral em t=0
+          e não sofre ajuste de espera.
         </p>
 
         <Graficos
