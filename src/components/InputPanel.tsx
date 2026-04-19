@@ -132,7 +132,7 @@ function CampoIndiceConsorcio({
 
   return (
     <div className="flex flex-col gap-0.5">
-      <label className="text-xs font-medium text-slate-500">Índice de Reajuste</label>
+      <label className="text-xs font-medium text-slate-500">Índice de Reajuste <span className="font-normal text-slate-400">(% a.a. projetado)</span></label>
       <div className="flex flex-wrap gap-1 mb-1">
         {(['IPCA', 'INCC', 'ValorBem', 'Outro'] as IndiceConsorcio[]).map((idx) => (
           <button key={idx} type="button"
