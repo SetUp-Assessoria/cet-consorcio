@@ -164,7 +164,7 @@ function CampoIndexador({
   return (
     <div className="flex flex-col gap-0.5">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-medium text-slate-500">Indexador</label>
+        <label className="text-xs font-medium text-slate-500">Indexador <span className="font-normal text-slate-400">(% a.a. estimado)</span></label>
         <div className="flex rounded border border-orange-200 overflow-hidden text-xs">
           {(['IPCA', 'INCC', 'TR'] as Indexador[]).map((idx) => (
             <button key={idx} type="button"
