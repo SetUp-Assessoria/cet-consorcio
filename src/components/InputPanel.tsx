@@ -366,6 +366,18 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
               value={Math.max(0, financiamentoParams.valorCarta - financiamentoParams.valorEntrada)}
               unit="R$"
               accentClass="text-orange-700" />
+            <Campo
+              field={{ key: 'tarifaContratacao', label: 'Tarifa de Contratação', unit: 'R$', step: 100, min: 0, max: 100000 }}
+              value={financiamentoParams.tarifaContratacao}
+              onChange={(v) => onFinanciamentoChange({ ...financiamentoParams, tarifaContratacao: v })} />
+            <Campo
+              field={{ key: 'taxaAvaliacao', label: 'Taxa de Avaliação', unit: 'R$', step: 100, min: 0, max: 50000 }}
+              value={financiamentoParams.taxaAvaliacao}
+              onChange={(v) => onFinanciamentoChange({ ...financiamentoParams, taxaAvaliacao: v })} />
+            <Campo
+              field={{ key: 'iof', label: 'IOF', unit: '%', step: 0.001, min: 0, max: 0.05, isPercent: true }}
+              value={financiamentoParams.iof}
+              onChange={(v) => onFinanciamentoChange({ ...financiamentoParams, iof: v })} />
           </div>
           {/* Coluna direita: condições do contrato */}
           <div className="flex flex-1 flex-col gap-2">

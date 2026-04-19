@@ -117,6 +117,9 @@ describe('calcularFinanciamento', () => {
     seguro: 0,
     indexador: 'TR' as const,
     indiceAnual: Math.pow(1 + 0.0005, 12) - 1,
+    tarifaContratacao: 0,
+    taxaAvaliacao: 0,
+    iof: 0,
   }
 
   it('1ª prestação correta (planilha SAC TR)', () => {

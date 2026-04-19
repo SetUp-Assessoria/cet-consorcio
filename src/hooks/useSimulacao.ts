@@ -34,6 +34,9 @@ export const DEFAULT_FINANCIAMENTO: FinanciamentoParams = {
   seguro: 0,
   indexador: 'TR',
   indiceAnual: 0.006,
+  tarifaContratacao: 0,
+  taxaAvaliacao: 0,
+  iof: 0,
 }
 
 export function useSimulacao() {

@@ -7,6 +7,7 @@ export function calcularFinanciamento(p: FinanciamentoParams): ResultadoSimulaca
 
   const valorFinanciado = Math.max(0, p.valorCarta - p.valorEntrada)
   const saldoInicial = valorFinanciado * (1 + p.seguro)
+  const custosUpfront = p.tarifaContratacao + p.taxaAvaliacao + valorFinanciado * p.iof
 
   // Amortização nominal (SAC): fixa sobre o PV original
   const amortizacaoNominal = saldoInicial / p.parcelas
@@ -15,9 +16,10 @@ export function calcularFinanciamento(p: FinanciamentoParams): ResultadoSimulaca
   let saldo = saldoInicial
   let cartaAjustada = valorFinanciado
   let fatorAcum = 1       // fator TR/índice acumulado (começa em 1)
-  let totalPago = 0
+  let totalPago = custosUpfront
 
-  const fluxoIRR: number[] = [valorFinanciado]
+  // IRR: crédito líquido = financiado menos custos upfront pagos na contratação
+  const fluxoIRR: number[] = [valorFinanciado - custosUpfront]
 
   for (let mes = 1; mes <= p.parcelas; mes++) {
     // 1. Acumula o fator do indexador

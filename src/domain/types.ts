@@ -37,6 +37,9 @@ export interface FinanciamentoParams {
   seguro: number
   indexador: Indexador
   indiceAnual: number
+  tarifaContratacao: number     // R$ — custo fixo de contratação
+  taxaAvaliacao: number         // R$ — avaliação do imóvel
+  iof: number                   // fração do valor financiado (ex: 0.0038)
 }
 
 export interface LinhaAmortizacao {
