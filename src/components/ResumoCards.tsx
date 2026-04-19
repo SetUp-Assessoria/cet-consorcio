@@ -18,15 +18,21 @@ function Hint({ text }: { text: string }) {
   )
 }
 
-function Card({ label, hint, cVal, fVal, format }: {
-  label: string; hint: string; cVal: number; fVal: number; format: (v: number) => string
+function Card({ label, hint, cVal, fVal, format, warn }: {
+  label: string; hint: string; cVal: number; fVal: number
+  format: (v: number) => string; warn?: boolean
 }) {
   const cMenor = cVal < fVal
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-      <div className="mb-2 flex items-center">
+      <div className="mb-2 flex items-center gap-1">
         <p className="text-xs font-medium text-slate-500">{label}</p>
         <Hint text={hint} />
+        {warn && (
+          <span title="Créditos liberados diferentes — a comparação pode não estar nos mesmos parâmetros">
+            ⚠️
+          </span>
+        )}
       </div>
       <div className="flex justify-between gap-2">
         <div className="text-center">
@@ -42,8 +48,27 @@ function Card({ label, hint, cVal, fVal, format }: {
   )
 }
 
-function CardBlank() {
-  return <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-3" />
+function CardAjuste({ creditoConsorcio, creditoFinanciamento }: { creditoConsorcio: number; creditoFinanciamento: number }) {
+  const diff = creditoConsorcio - creditoFinanciamento
+
+  if (Math.abs(diff) < 1) {
+    return <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-3" />
+  }
+
+  const diffAbs = Math.abs(diff)
+  const acao = diff > 0
+    ? `Reduza o Valor de Entrada do financiamento em ${moeda(diffAbs)} para que o crédito líquido iguale o do consórcio (${moeda(creditoConsorcio)}).`
+    : `Aumente o Valor de Entrada do financiamento em ${moeda(diffAbs)} — ou reduza o Valor da Carta do consórcio — para que os créditos fiquem equivalentes (${moeda(creditoFinanciamento)}).`
+
+  return (
+    <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+      <p className="mb-1 text-[10px] font-semibold text-amber-700">⚠️ Bases diferentes</p>
+      <p className="text-[10px] text-amber-800 leading-relaxed">
+        Consórcio libera <strong>{moeda(creditoConsorcio)}</strong> vs Financiamento <strong>{moeda(creditoFinanciamento)}</strong>{' '}
+        (diferença de <strong>{moeda(diffAbs)}</strong>). {acao}
+      </p>
+    </div>
+  )
 }
 
 export function ResumoCards({ consorcio, financiamento }: Props) {
@@ -51,6 +76,7 @@ export function ResumoCards({ consorcio, financiamento }: Props) {
   const parcelaFinalF = financiamento.linhas[financiamento.linhas.length - 1]?.parcela ?? 0
   const custoC = consorcio.totalPago - consorcio.creditoLiberado
   const custoF = financiamento.totalPago - financiamento.creditoLiberado
+  const creditosDiferem = Math.abs(consorcio.creditoLiberado - financiamento.creditoLiberado) >= 1
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -69,6 +95,7 @@ export function ResumoCards({ consorcio, financiamento }: Props) {
         label="Crédito Liberado"
         hint="Valor efetivamente disponibilizado ao contratante após descontos de lance embutido e/ou próprio."
         cVal={consorcio.creditoLiberado} fVal={financiamento.creditoLiberado} format={moeda}
+        warn={creditosDiferem}
       />
       <Card
         label="Valor pago − crédito"
@@ -93,7 +120,10 @@ export function ResumoCards({ consorcio, financiamento }: Props) {
         hint="Soma de todas as parcelas mensais mais os lances próprios desembolsados ao longo do contrato."
         cVal={consorcio.totalPago} fVal={financiamento.totalPago} format={moeda}
       />
-      <CardBlank />
+      <CardAjuste
+        creditoConsorcio={consorcio.creditoLiberado}
+        creditoFinanciamento={financiamento.creditoLiberado}
+      />
     </div>
   )
 }
