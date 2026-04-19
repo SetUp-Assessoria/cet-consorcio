@@ -56,16 +56,14 @@ function CardAjuste({ creditoConsorcio, creditoFinanciamento }: { creditoConsorc
   }
 
   const diffAbs = Math.abs(diff)
-  const acao = diff > 0
-    ? `Reduza o Valor de Entrada do financiamento em ${moeda(diffAbs)} para que o crédito líquido iguale o do consórcio (${moeda(creditoConsorcio)}).`
-    : `Aumente o Valor de Entrada do financiamento em ${moeda(diffAbs)} — ou reduza o Valor da Carta do consórcio — para que os créditos fiquem equivalentes (${moeda(creditoFinanciamento)}).`
 
   return (
     <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
       <p className="mb-1 text-[10px] font-semibold text-amber-700">⚠️ Bases diferentes</p>
       <p className="text-[10px] text-amber-800 leading-relaxed">
-        Consórcio libera <strong>{moeda(creditoConsorcio)}</strong> vs Financiamento <strong>{moeda(creditoFinanciamento)}</strong>{' '}
-        (diferença de <strong>{moeda(diffAbs)}</strong>). {acao}
+        Consórcio libera <strong>{moeda(creditoConsorcio)}</strong> e o financiamento <strong>{moeda(creditoFinanciamento)}</strong>{' '}
+        (diferença de <strong>{moeda(diffAbs)}</strong>). Para uma comparação justa, ajuste os parâmetros de forma que
+        o crédito liberado seja o mais próximo possível entre as duas modalidades.
       </p>
     </div>
   )
