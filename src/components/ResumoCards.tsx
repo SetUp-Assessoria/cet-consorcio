@@ -61,7 +61,7 @@ export function ResumoCards({ consorcio, financiamento }: Props) {
         cVal={consorcio.parcelaInicial} fVal={financiamento.parcelaInicial} format={moeda}
       />
       <Card
-        label="TIR Anual (CET)"
+        label="CET estimado"
         hint="Custo Efetivo Total anualizado. O crédito é trazido a valor presente pelo IPCA (creditoPV = crédito ÷ (1+IPCA)^(k/12)) e posicionado em t=0 para calcular a TIR."
         cVal={consorcio.tirAnual} fVal={financiamento.tirAnual} format={pct}
       />
@@ -82,7 +82,7 @@ export function ResumoCards({ consorcio, financiamento }: Props) {
         cVal={parcelaFinalC} fVal={parcelaFinalF} format={moeda}
       />
       <Card
-        label="CET c/ custo de espera¹"
+        label="CET c/ custo de espera estimado¹"
         hint="CET base composto com a valorização esperada do bem acima do índice: (1 + CET) × (1 + valorização) − 1. Reflete o custo real de aguardar a contemplação enquanto o imóvel se valoriza."
         cVal={consorcio.tirAnualOpp ?? consorcio.tirAnual}
         fVal={financiamento.tirAnual}
