@@ -146,10 +146,12 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
       tirAnual = Math.pow(1 + m, 12) - 1
     }
   } else {
-    // mirr
+    // mirr — perspectiva do credor: parcelas = inflows, crédito = outflow
+    // Negamos o fluxoTk (tomador) para obter o fluxo do credor, evitando MIRR negativo.
     const taxaOpMensal = Math.pow(1 + p.taxaOportunidadeAnual, 1 / 12) - 1
     const fluxoTk = construirFluxoConsorcioTk(linhas, creditoLiberado, p.parcelaContemplacao)
-    tirMensal = mirr(fluxoTk, taxaOpMensal)
+    const fluxoMirr = fluxoTk.map(v => -v)
+    tirMensal = mirr(fluxoMirr, taxaOpMensal)
     tirAnual = isNaN(tirMensal) ? NaN : Math.pow(1 + tirMensal, 12) - 1
   }
 

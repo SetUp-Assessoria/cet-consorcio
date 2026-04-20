@@ -164,9 +164,10 @@ describe('metodologias CET', () => {
     expect(isFinite(r.tirAnual)).toBe(true)
   })
 
-  it('mirr: sempre converge (retorna número finito)', () => {
+  it('mirr: sempre converge com valor positivo', () => {
     const r = calcularConsorcio({ ...base, metodoCET: 'mirr', tipoContemplacao: 'sorteio', parcelaContemplacao: 12 })
     expect(isFinite(r.tirAnual)).toBe(true)
+    expect(r.tirAnual).toBeGreaterThan(0)
   })
 
   it('mirr: aumentar taxa de oportunidade aumenta o MIRR', () => {
