@@ -2,6 +2,7 @@ export type BaseReajuste = 'totalContratado' | 'valorCarta'
 export type LanceMode = 'percentual' | 'financeiro'
 export type TipoContemplacao = 'sorteio' | 'lancePropio' | 'lanceEmbutido' | 'lanceEmbutidoMaisPropio'
 export type IndiceConsorcio = 'IPCA' | 'INCC' | 'ValorBem' | 'Outro'
+export type MetodoCET = 'pv' | 'tk' | 'mirr'
 
 export interface ConsorcioParams {
   valorCarta: number
@@ -22,6 +23,8 @@ export interface ConsorcioParams {
   lanceEmbutidoMode: LanceMode
   redutorParcela: number         // fração (0–1) — reduz a parcela até a contemplação
   baseReajuste: BaseReajuste
+  metodoCET: MetodoCET
+  taxaOportunidadeAnual: number  // usado apenas quando metodoCET === 'mirr'
 }
 
 export type TaxaJurosMode = 'mensal' | 'anual'
@@ -66,7 +69,9 @@ export interface ResultadoSimulacao {
   creditoLiberado: number
   tirMensal: number
   tirAnual: number
-  tirAnualOpp?: number   // CET: t=k para contempl. < 48 meses; t=0 para ≥ 48
+  tirAnualOpp?: number
   vpl: number
   linhas: LinhaAmortizacao[]
+  metodoCETUsado?: MetodoCET
+  metodoCETFallback?: boolean
 }

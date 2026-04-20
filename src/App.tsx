@@ -90,12 +90,13 @@ export default function App() {
             <ResumoCards consorcio={resultadoConsorcio} financiamento={resultadoFinanciamento} />
 
             <p className="text-[11px] text-slate-400 -mt-3">
-              ¹ <strong>TIR Anual (CET)</strong>: custo efetivo anualizado — o crédito liberado é trazido a valor presente
-              pelo índice de reajuste contratual: creditoPV = crédito ÷ (1 + IPCA)^(k/12), posicionado em t=0.
-              &nbsp;<strong>CET c/ custo de espera</strong>: compõe o CET base com a valorização esperada do bem acima
-              do índice contratual — (1 + CET) × (1 + valorização) − 1 — refletindo o custo real de aguardar
-              a contemplação enquanto o imóvel se valoriza. O financiamento recebe o crédito integral em t=0
-              e não sofre ajuste de espera.
+              ¹ <strong>CET estimado</strong>: custo efetivo total anualizado do consórcio, calculado conforme a metodologia selecionada —{' '}
+              <strong>PV</strong>: crédito descontado pelo índice de reajuste contratual (creditoPV = crédito ÷ (1 + índice)^(k/12)) e posicionado em t=0;{' '}
+              <strong>t=k</strong>: crédito posicionado no mês real da contemplação (usa PV como fallback se o fluxo não tiver troca de sinal);{' '}
+              <strong>MIRR</strong>: taxa interna de retorno modificada — inflows capitalizados e outflows descontados pela taxa de oportunidade informada.{' '}
+              &nbsp;<strong>CET c/ custo de espera</strong>: compõe o CET base com a valorização esperada do bem acima do índice contratual —{' '}
+              (1 + CET) × (1 + valorização) − 1 — refletindo o custo real de aguardar a contemplação enquanto o imóvel se valoriza.{' '}
+              O financiamento recebe o crédito integral em t=0 e não sofre ajuste de espera.
             </p>
 
             <Graficos
