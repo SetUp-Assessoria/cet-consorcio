@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { BaseReajuste, IndiceConsorcio, LanceMode, TaxaJurosMode, Indexador, TipoContemplacao, ConsorcioParams, FinanciamentoParams } from '../domain/types'
+import type { BaseReajuste, IndiceConsorcio, LanceMode, MetodoCET, TaxaJurosMode, Indexador, TipoContemplacao, ConsorcioParams, FinanciamentoParams } from '../domain/types'
 
 type FieldDef = {
   key: string
@@ -149,6 +149,50 @@ function CampoIndiceConsorcio({
           className="w-full min-w-0 bg-transparent text-sm outline-none" />
         <span className="shrink-0 text-xs text-slate-400">%</span>
       </div>
+    </div>
+  )
+}
+
+const METODO_CET_OPTIONS: { value: MetodoCET; label: string; hint: string }[] = [
+  { value: 'pv', label: 'PV', hint: 'Crédito descontado pelo índice de reajuste e posicionado em t=0. Estável; subestima quando TIR > índice.' },
+  { value: 'tk', label: 't=k', hint: 'Crédito posicionado no mês real da contemplação. Mais realista; pode não convergir (usa PV como fallback).' },
+  { value: 'mirr', label: 'MIRR', hint: 'Taxa Interna de Retorno Modificada. Sempre converge; usa uma taxa de oportunidade externa para capitalizar os fluxos positivos.' },
+]
+
+function CampoMetodoCET({
+  metodo, taxaOportunidade, onChange,
+}: {
+  metodo: MetodoCET; taxaOportunidade: number
+  onChange: (metodo: MetodoCET, taxaOportunidade: number) => void
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-xs font-medium text-slate-500">Metodologia do CET</label>
+      <div className="flex flex-wrap gap-1">
+        {METODO_CET_OPTIONS.map(({ value, label, hint }) => (
+          <div key={value} className="group relative">
+            <button type="button"
+              onClick={() => onChange(value, taxaOportunidade)}
+              className={`px-2 py-1 text-xs rounded border transition-colors ${metodo === value ? 'bg-blue-600 text-white border-blue-600 font-medium' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>
+              {label}
+            </button>
+            <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-1 w-52 -translate-x-1/2 rounded bg-slate-800 px-2 py-1.5 text-[10px] leading-relaxed text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+              {hint}
+              <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+            </div>
+          </div>
+        ))}
+      </div>
+      {metodo === 'mirr' && (
+        <div className="flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 focus-within:border-blue-400 mt-0.5">
+          <span className="shrink-0 text-xs text-slate-400">Taxa de oportunidade</span>
+          <input type="number" step={0.1} min={0} max={30}
+            value={+(taxaOportunidade * 100).toFixed(2)}
+            onChange={(e) => { const r = parseFloat(e.target.value); if (!isNaN(r)) onChange(metodo, r / 100) }}
+            className="w-16 min-w-0 bg-transparent text-sm outline-none text-right" />
+          <span className="shrink-0 text-xs text-slate-400">% a.a.</span>
+        </div>
+      )}
     </div>
   )
 }
@@ -344,6 +388,14 @@ export function InputPanel({ consorcioParams, onConsorcioChange, financiamentoPa
               ? 'O índice reajusta carta + taxas (adm, fundo, seguro). Parcela e saldo crescem sobre o valor total — cenário mais conservador.'
               : 'O índice reajusta apenas o valor da carta. As taxas permanecem fixas no valor original — custo efetivo menor.'}
           </p>
+        </div>
+
+        {/* Metodologia do CET */}
+        <div className="mt-3">
+          <CampoMetodoCET
+            metodo={consorcioParams.metodoCET}
+            taxaOportunidade={consorcioParams.taxaOportunidadeAnual}
+            onChange={(metodo, taxaOportunidade) => onConsorcioChange({ ...consorcioParams, metodoCET: metodo, taxaOportunidadeAnual: taxaOportunidade })} />
         </div>
       </div>
 

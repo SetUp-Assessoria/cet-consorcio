@@ -1,5 +1,11 @@
-import type { ResultadoSimulacao } from '../domain/types'
+import type { MetodoCET, ResultadoSimulacao } from '../domain/types'
 import { moeda, pct } from '../utils/format'
+
+const METODO_LABEL: Record<MetodoCET, string> = {
+  pv: 'PV por índice',
+  tk: 't=k (mês contemplação)',
+  mirr: 'MIRR',
+}
 
 interface Props {
   consorcio: ResultadoSimulacao
@@ -18,20 +24,26 @@ function Hint({ text }: { text: string }) {
   )
 }
 
-function Card({ label, hint, cVal, fVal, format, warn }: {
+function Card({ label, hint, cVal, fVal, format, warn, subtitle, fallback }: {
   label: string; hint: string; cVal: number; fVal: number
-  format: (v: number) => string; warn?: boolean
+  format: (v: number) => string; warn?: boolean; subtitle?: string; fallback?: boolean
 }) {
   const cMenor = cVal < fVal
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-      <div className="mb-2 flex items-center gap-1">
+      <div className="mb-2 flex items-center gap-1 flex-wrap">
         <p className="text-xs font-medium text-slate-500">{label}</p>
         <Hint text={hint} />
         {warn && (
           <span title="Créditos liberados diferentes — a comparação pode não estar nos mesmos parâmetros">
             ⚠️
           </span>
+        )}
+        {subtitle && (
+          <span className="text-[10px] text-slate-400 font-normal ml-0.5">({subtitle})</span>
+        )}
+        {fallback && (
+          <span title="t=k não convergiu — usando PV como fallback" className="text-[10px] text-amber-600 font-medium">⚠ fallback PV</span>
         )}
       </div>
       <div className="flex justify-between gap-2">
@@ -86,8 +98,10 @@ export function ResumoCards({ consorcio, financiamento }: Props) {
       />
       <Card
         label="CET estimado"
-        hint="Custo Efetivo Total anualizado. O crédito é trazido a valor presente pelo IPCA (creditoPV = crédito ÷ (1+IPCA)^(k/12)) e posicionado em t=0 para calcular a TIR."
+        hint="Custo Efetivo Total anualizado. Metodologia selecionável: PV (crédito descontado ao índice de reajuste em t=0), t=k (crédito no mês real da contemplação) ou MIRR (taxa modificada com taxa de oportunidade)."
         cVal={consorcio.tirAnual} fVal={financiamento.tirAnual} format={pct}
+        subtitle={consorcio.metodoCETUsado ? METODO_LABEL[consorcio.metodoCETUsado] : undefined}
+        fallback={consorcio.metodoCETFallback}
       />
       <Card
         label="Crédito Liberado"

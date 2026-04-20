@@ -22,6 +22,8 @@ export const DEFAULT_CONSORCIO: ConsorcioParams = {
   lanceEmbutidoMode: 'percentual',
   redutorParcela: 0,
   baseReajuste: 'totalContratado',
+  metodoCET: 'pv',
+  taxaOportunidadeAnual: 0.10,
 }
 
 export const DEFAULT_FINANCIAMENTO: FinanciamentoParams = {

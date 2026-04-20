@@ -1,5 +1,6 @@
-import type { ConsorcioParams, LinhaAmortizacao, ResultadoSimulacao } from './types'
-import { irr, npv } from './financeiro'
+import type { ConsorcioParams, LinhaAmortizacao, MetodoCET, ResultadoSimulacao } from './types'
+import { irr, mirr, npv } from './financeiro'
+import { construirFluxoConsorcioTk } from './fluxo'
 
 export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
   const taxaAdesaoFrac = p.taxaAdesaoMode === 'financeiro' ? p.taxaAdesao / p.valorCarta : p.taxaAdesao
@@ -112,19 +113,50 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
     })
   }
 
-  // CET padrão: crédito cheio em t=0 — usado para VPL e referência interna
-  const fluxoCET = [creditoLiberado, ...linhas.map(l => -(l.parcela + l.lance))]
-  const tirMensal = irr(fluxoCET)
-  const vplVal = npv(tirMensal, fluxoCET.slice(1)) + fluxoCET[0]
+  // --- Cálculo do CET conforme metodologia selecionada ---
+  let tirMensal: number
+  let tirAnual: number
+  let metodoCETUsado: MetodoCET = p.metodoCET
+  let metodoCETFallback = false
 
-  // CET ajustado: crédito trazido a valor presente pelo IPCA — creditoPV = crédito ÷ (1 + IPCA)^(k/12)
-  // Equivalente ao PV(taxa_mensal, k, , crédito) da planilha (ex: k=36 → 17,62%).
-  // tirAnual expõe este valor; tirAnualOpp o compõe com a valorização do bem.
+  // Fluxo PV: crédito trazido a valor presente pelo IPCA posicionado em t=0
   const creditoPV = creditoLiberado / Math.pow(1 + p.ipca, p.parcelaContemplacao / 12)
   const fluxoPV = [creditoPV, ...linhas.map(l => -(l.parcela + l.lance))]
-  const cetPV = Math.pow(1 + irr(fluxoPV), 12) - 1
-  const tirAnual = cetPV
-  const tirAnualOpp = (1 + cetPV) * (1 + p.valorizacaoImovel) - 1
+  const calcPV = () => {
+    const m = irr(fluxoPV)
+    return { tirMensal: m, tirAnual: Math.pow(1 + m, 12) - 1 }
+  }
+
+  if (p.metodoCET === 'pv') {
+    const r = calcPV()
+    tirMensal = r.tirMensal
+    tirAnual = r.tirAnual
+  } else if (p.metodoCET === 'tk') {
+    const fluxoTk = construirFluxoConsorcioTk(linhas, creditoLiberado, p.parcelaContemplacao)
+    const m = irr(fluxoTk)
+    if (isNaN(m) || !isFinite(m)) {
+      // Sem troca de sinal — fallback para PV
+      const r = calcPV()
+      tirMensal = r.tirMensal
+      tirAnual = r.tirAnual
+      metodoCETUsado = 'pv'
+      metodoCETFallback = true
+    } else {
+      tirMensal = m
+      tirAnual = Math.pow(1 + m, 12) - 1
+    }
+  } else {
+    // mirr
+    const taxaOpMensal = Math.pow(1 + p.taxaOportunidadeAnual, 1 / 12) - 1
+    const fluxoTk = construirFluxoConsorcioTk(linhas, creditoLiberado, p.parcelaContemplacao)
+    tirMensal = mirr(fluxoTk, taxaOpMensal)
+    tirAnual = isNaN(tirMensal) ? NaN : Math.pow(1 + tirMensal, 12) - 1
+  }
+
+  const fluxoCET = [creditoLiberado, ...linhas.map(l => -(l.parcela + l.lance))]
+  const vplVal = npv(tirMensal, fluxoCET.slice(1)) + fluxoCET[0]
+
+  const tirAnualOpp = isNaN(tirAnual) ? NaN : (1 + tirAnual) * (1 + p.valorizacaoImovel) - 1
 
   return {
     saldoDevedor: totalContratado,
@@ -136,5 +168,7 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
     tirAnualOpp,
     vpl: vplVal,
     linhas,
+    metodoCETUsado,
+    metodoCETFallback: metodoCETFallback || undefined,
   }
 }

@@ -9,6 +9,27 @@ export function npv(taxa: number, fluxos: number[]): number {
   return fluxos.reduce((acc, cf, i) => acc + cf / Math.pow(1 + taxa, i + 1), 0)
 }
 
+// MIRR: taxa interna de retorno modificada
+// Inflows capitalizados até o final; outflows descontados ao início; ambos pela taxaMensal.
+export function mirr(fluxos: number[], taxaMensal: number): number {
+  const n = fluxos.length - 1
+  if (n <= 0) return NaN
+
+  let pvOutflows = 0
+  let fvInflows = 0
+
+  for (let t = 0; t < fluxos.length; t++) {
+    if (fluxos[t] < 0) {
+      pvOutflows += Math.abs(fluxos[t]) / Math.pow(1 + taxaMensal, t)
+    } else {
+      fvInflows += fluxos[t] * Math.pow(1 + taxaMensal, n - t)
+    }
+  }
+
+  if (pvOutflows === 0 || fvInflows === 0) return NaN
+  return Math.pow(fvInflows / pvOutflows, 1 / n) - 1
+}
+
 // IRR: bissecção + Newton-Raphson para fluxos irregulares
 export function irr(fluxos: number[], LO = -0.99, HI = 10): number {
   const npvAt = (r: number) =>
