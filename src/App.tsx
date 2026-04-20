@@ -6,8 +6,9 @@ import { TabelaAmortizacao } from './components/TabelaAmortizacao'
 import { Graficos } from './components/Graficos'
 import { BotoesExport } from './components/BotoesExport'
 import { DashboardDecisao } from './components/DashboardDecisao'
+import { AbaMetodologias } from './components/AbaMetodologias'
 
-type Aba = 'simulacao' | 'analise'
+type Aba = 'simulacao' | 'analise' | 'metodologias'
 
 export default function App() {
   const {
@@ -74,6 +75,17 @@ export default function App() {
               </div>
             )}
           </div>
+
+          <button
+            onClick={() => setAba('metodologias')}
+            className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+              aba === 'metodologias'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Metodologias CET
+          </button>
         </div>
       </div>
 
@@ -117,6 +129,10 @@ export default function App() {
             financiamento={resultadoFinanciamento}
             consorcioParams={consorcioParams}
           />
+        )}
+
+        {aba === 'metodologias' && (
+          <AbaMetodologias consorcioParams={consorcioParams} />
         )}
       </main>
     </div>
