@@ -41,9 +41,46 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
       parcelaCustas = saldoCustas / mesesRestantes
     }
 
+    // --- Calcula lance do mês (se for o mês da contemplação) ---
+    // Lance próprio: desembolso em dinheiro
+    let lancePropio = 0
+    if (hasLancePropio && mes === p.parcelaContemplacao && p.lance > 0) {
+      lancePropio = p.lanceMode === 'financeiro'
+        ? p.lance
+        : (saldoCarta + saldoCustas) * p.lance
+    }
+
+    // Lance embutido: usa parte do crédito (não é desembolso)
+    let lanceEmb = 0
+    if (hasLanceEmbutido && mes === p.parcelaContemplacao && p.lanceEmbutido > 0) {
+      lanceEmb = p.lanceEmbutidoMode === 'financeiro'
+        ? p.lanceEmbutido
+        : (saldoCarta + saldoCustas) * p.lanceEmbutido
+    }
+
+    const lanceTotal = lancePropio + lanceEmb
+
+    // Aplica o lance ao saldo ANTES de calcular a parcela deste mês,
+    // para que a parcela do próprio mês de contemplação já reflita o novo
+    // patamar (sem "soluço": ela é igual às parcelas seguintes pós-lance).
+    if (lanceTotal > 0) {
+      creditoLiberado = cartaAjustada - lancePropio - lanceEmb
+
+      const propCarta = saldoCarta / (saldoCarta + saldoCustas || 1)
+      saldoCarta -= lanceTotal * propCarta
+      saldoCustas -= lanceTotal * (1 - propCarta)
+
+      const mesesRestantes = p.parcelas - mes + 1
+      if (mesesRestantes > 0) {
+        parcelaCarta = saldoCarta / mesesRestantes
+        parcelaCustas = saldoCustas / mesesRestantes
+      }
+    }
+
     const parcelaBase = parcelaCarta + parcelaCustas
 
-    // Redutor de parcela: reduz até a contemplação; após, dilui o acumulado nas parcelas restantes
+    // Redutor de parcela: reduz até a contemplação; após, dilui o acumulado
+    // de forma suave nas parcelas restantes (inclusive o próprio mês).
     let desconto = 0
     let adicional = 0
     if (p.redutorParcela > 0) {
@@ -59,40 +96,8 @@ export function calcularConsorcio(p: ConsorcioParams): ResultadoSimulacao {
 
     const parcela = parcelaBase - desconto + adicional
 
-    // Lance próprio: desembolso em dinheiro (entra na coluna Lance)
-    let lancePropio = 0
-    if (hasLancePropio && mes === p.parcelaContemplacao && p.lance > 0) {
-      lancePropio = p.lanceMode === 'financeiro'
-        ? p.lance
-        : (saldoCarta + saldoCustas) * p.lance
-    }
-
-    // Lance embutido: usa parte do crédito (NÃO é desembolso; não entra na coluna Lance)
-    let lanceEmb = 0
-    if (hasLanceEmbutido && mes === p.parcelaContemplacao && p.lanceEmbutido > 0) {
-      lanceEmb = p.lanceEmbutidoMode === 'financeiro'
-        ? p.lanceEmbutido
-        : (saldoCarta + saldoCustas) * p.lanceEmbutido
-    }
-
     saldoCarta -= parcelaCarta
     saldoCustas -= parcelaCustas
-
-    const lanceTotal = lancePropio + lanceEmb
-
-    if (lanceTotal > 0) {
-      creditoLiberado = cartaAjustada - lancePropio - lanceEmb
-
-      const propCarta = saldoCarta / (saldoCarta + saldoCustas || 1)
-      saldoCarta -= lanceTotal * propCarta
-      saldoCustas -= lanceTotal * (1 - propCarta)
-
-      const mesesRestantes = p.parcelas - mes
-      if (mesesRestantes > 0) {
-        parcelaCarta = saldoCarta / mesesRestantes
-        parcelaCustas = saldoCustas / mesesRestantes
-      }
-    }
 
     // Para sorteio: crédito = cartaAjustada (sem abatimentos) no mês da contemplação
     if (!temLance && mes === p.parcelaContemplacao) {
